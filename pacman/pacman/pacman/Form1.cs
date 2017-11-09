@@ -7,8 +7,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Runtime.Remoting;
+using System.Runtime.Remoting.Channels;
+using System.Runtime.Remoting.Channels.Tcp;
+using System.Net.Sockets;
 
-
+using RemoteServices;
+using System.Net;
 
 namespace pacman {
     public partial class Form1 : Form {
@@ -34,11 +39,42 @@ namespace pacman {
         
         //x and y directions for the bi-direccional pink ghost
         int ghost3x = 5;
-        int ghost3y = 5;            
+        int ghost3y = 5;
 
+        IServer server;
+        
         public Form1() {
+            int port = FreeTcpPort();
+            System.Console.WriteLine(port);
+            TcpChannel chan = new TcpChannel(port);
+            ChannelServices.RegisterChannel(chan, false);
+
+            // Alternative 1 for service activation
+            //ChatClientServices servicos = new ChatClientServices();
+            //RemotingServices.Marshal(servicos, "ChatClient",
+            //    typeof(ChatClientServices));
+
+            RemotingConfiguration.RegisterWellKnownServiceType(
+                typeof(ClientServices), "Client",
+                WellKnownObjectMode.Singleton);
+
+            IServer server = (IServer)Activator.GetObject(typeof(IServer), "tcp://localhost:8086/Server");
+            string rate = server.RegisterClient(port.ToString());
+            this.server = server;
+            
+
             InitializeComponent();
             label2.Visible = false;
+        }
+
+        private int FreeTcpPort()
+        {
+            //IPAddress ipAddress = Dns.Resolve("localhost").AddressList[0];
+            TcpListener tcpListener = new TcpListener(IPAddress.Loopback, 0);
+            tcpListener.Start();
+            int port = ((IPEndPoint)tcpListener.LocalEndpoint).Port;
+            tcpListener.Stop();
+            return port;
         }
 
         private void keyisdown(object sender, KeyEventArgs e) {
@@ -167,6 +203,19 @@ namespace pacman {
         private void Form1_Load(object sender, EventArgs e)
         {
 
+        }
+
+        public class ClientServices : MarshalByRefObject, IClient
+        {
+
+            public ClientServices()
+            {
+            }
+
+            public string GetMove()
+            {
+                return "a tua mae";
+            }
         }
     }
 }

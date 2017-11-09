@@ -73,79 +73,79 @@ namespace Chat {
             this.tb_Name = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
-            // textBoxConversa
+            // tb_Conversation
             // 
             this.tb_Conversation.AcceptsReturn = true;
             this.tb_Conversation.AcceptsTab = true;
             this.tb_Conversation.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.tb_Conversation.Location = new System.Drawing.Point(120, 8);
+            this.tb_Conversation.Location = new System.Drawing.Point(240, 15);
             this.tb_Conversation.Multiline = true;
-            this.tb_Conversation.Name = "textBoxConversa";
+            this.tb_Conversation.Name = "tb_Conversation";
             this.tb_Conversation.ReadOnly = true;
             this.tb_Conversation.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.tb_Conversation.Size = new System.Drawing.Size(215, 232);
+            this.tb_Conversation.Size = new System.Drawing.Size(430, 428);
             this.tb_Conversation.TabIndex = 0;
             // 
-            // textBoxMensagem
+            // tb_Message
             // 
-            this.tb_Message.Location = new System.Drawing.Point(8, 245);
-            this.tb_Message.Name = "textBoxMensagem";
-            this.tb_Message.Size = new System.Drawing.Size(273, 20);
+            this.tb_Message.Location = new System.Drawing.Point(16, 452);
+            this.tb_Message.Name = "tb_Message";
+            this.tb_Message.Size = new System.Drawing.Size(546, 31);
             this.tb_Message.TabIndex = 1;
             // 
-            // buttonEnvio
+            // bt_Send
             // 
-            this.bt_Send.Location = new System.Drawing.Point(287, 245);
-            this.bt_Send.Name = "buttonEnvio";
-            this.bt_Send.Size = new System.Drawing.Size(48, 23);
+            this.bt_Send.Location = new System.Drawing.Point(574, 452);
+            this.bt_Send.Name = "bt_Send";
+            this.bt_Send.Size = new System.Drawing.Size(96, 43);
             this.bt_Send.TabIndex = 2;
             this.bt_Send.Text = "send";
             this.bt_Send.Click += new System.EventHandler(this.button1_Click);
             // 
-            // textBoxPorto
+            // tb_Port
             // 
-            this.tb_Port.Location = new System.Drawing.Point(8, 24);
-            this.tb_Port.Name = "textBoxPorto";
-            this.tb_Port.Size = new System.Drawing.Size(40, 20);
+            this.tb_Port.Location = new System.Drawing.Point(16, 44);
+            this.tb_Port.Name = "tb_Port";
+            this.tb_Port.Size = new System.Drawing.Size(80, 31);
             this.tb_Port.TabIndex = 3;
             // 
-            // labelPorto
+            // lb_Port
             // 
-            this.lb_Port.Location = new System.Drawing.Point(25, 5);
-            this.lb_Port.Name = "labelPorto";
-            this.lb_Port.Size = new System.Drawing.Size(63, 16);
+            this.lb_Port.Location = new System.Drawing.Point(50, 9);
+            this.lb_Port.Name = "lb_Port";
+            this.lb_Port.Size = new System.Drawing.Size(126, 30);
             this.lb_Port.TabIndex = 4;
             this.lb_Port.Text = "Client Port";
             this.lb_Port.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // buttonLigar
+            // bt_Connect
             // 
-            this.bt_Connect.Location = new System.Drawing.Point(56, 24);
-            this.bt_Connect.Name = "buttonLigar";
-            this.bt_Connect.Size = new System.Drawing.Size(56, 23);
+            this.bt_Connect.Location = new System.Drawing.Point(112, 44);
+            this.bt_Connect.Name = "bt_Connect";
+            this.bt_Connect.Size = new System.Drawing.Size(112, 43);
             this.bt_Connect.TabIndex = 5;
             this.bt_Connect.Text = "connect";
             this.bt_Connect.Click += new System.EventHandler(this.button2_Click);
             // 
-            // labelNome
+            // lb_Name
             // 
-            this.lb_Name.Location = new System.Drawing.Point(8, 182);
-            this.lb_Name.Name = "labelNome";
-            this.lb_Name.Size = new System.Drawing.Size(104, 18);
+            this.lb_Name.Location = new System.Drawing.Point(16, 336);
+            this.lb_Name.Name = "lb_Name";
+            this.lb_Name.Size = new System.Drawing.Size(208, 33);
             this.lb_Name.TabIndex = 6;
             this.lb_Name.Text = "Nickname";
             this.lb_Name.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // textBoxNome
+            // tb_Name
             // 
-            this.tb_Name.Location = new System.Drawing.Point(8, 208);
-            this.tb_Name.Name = "textBoxNome";
-            this.tb_Name.Size = new System.Drawing.Size(100, 20);
+            this.tb_Name.Location = new System.Drawing.Point(16, 384);
+            this.tb_Name.Name = "tb_Name";
+            this.tb_Name.Size = new System.Drawing.Size(200, 31);
             this.tb_Name.TabIndex = 7;
             // 
-            // FormClienteChat
+            // FormChatClient
             // 
-            this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
+            this.AutoScaleBaseSize = new System.Drawing.Size(10, 24);
             this.ClientSize = new System.Drawing.Size(352, 285);
             this.Controls.Add(this.tb_Name);
             this.Controls.Add(this.lb_Name);
@@ -155,8 +155,9 @@ namespace Chat {
             this.Controls.Add(this.bt_Send);
             this.Controls.Add(this.tb_Message);
             this.Controls.Add(this.tb_Conversation);
-            this.Name = "FormClienteChat";
+            this.Name = "FormChatClient";
             this.Text = "PADI CHAT";
+            this.Load += new System.EventHandler(this.FormChatClient_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -203,6 +204,11 @@ namespace Chat {
             foreach (object o in messages) {
                 AddMsg((string)o);
             }
+        }
+
+        private void FormChatClient_Load(object sender, EventArgs e)
+        {
+
         }
     }
 

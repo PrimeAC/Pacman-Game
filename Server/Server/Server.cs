@@ -7,33 +7,44 @@ using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 
+using RemoteServices;
+
 namespace Server
 {
     class Server
     {
+
         static void Main(string[] args)
         {
-            // change usingSingleton to false to use Marshal activation
-            bool usingSingleton = false;
-            HelloService myRem = null;
-
+            
             TcpChannel channel = new TcpChannel(8086);
-            ChannelServices.RegisterChannel(channel, true);
-
-            if (usingSingleton)
-            {
-                RemotingConfiguration.RegisterWellKnownServiceType(
-                  typeof(HelloService),
-                  "HelloService",
-                  WellKnownObjectMode.Singleton);
-            }
-            else
-            {
-                myRem = new HelloService();
-                RemotingServices.Marshal(myRem, "HelloService");
-            }
-            System.Console.WriteLine("<enter> to exit...");
+            ChannelServices.RegisterChannel(channel, false);
+            RemotingConfiguration.RegisterWellKnownServiceType(
+                typeof(ServerServices), "Server",
+                WellKnownObjectMode.Singleton);
+            System.Console.WriteLine("Press <enter> to terminate chat server...");
             System.Console.ReadLine();
+        }
+
+        class ServerServices : MarshalByRefObject, IServer
+        {
+            List<IClient> clients;
+
+            ServerServices()
+            {
+                clients = new List<IClient>();
+            }
+
+
+            public string RegisterClient(string NewClientName)
+            {
+                Console.WriteLine("New client listening at " + "tcp://localhost:" + NewClientName + "/Client");
+                IClient newClient =
+                    (IClient)Activator.GetObject(
+                           typeof(IClient), "tcp://localhost:" + NewClientName + "/Client");
+                clients.Add(newClient);
+                return "20";
+            }
         }
     }
 }
