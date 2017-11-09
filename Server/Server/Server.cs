@@ -13,15 +13,26 @@ namespace Server
     {
         static void Main(string[] args)
         {
+            // change usingSingleton to false to use Marshal activation
+            bool usingSingleton = false;
+            HelloService myRem = null;
+
             TcpChannel channel = new TcpChannel(8086);
             ChannelServices.RegisterChannel(channel, true);
 
-            RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(MyRemoteObject),
-                "MyRemoteObjectName",
-                WellKnownObjectMode.Singleton);
-
-            System.Console.WriteLine("<enter> para sair...");
+            if (usingSingleton)
+            {
+                RemotingConfiguration.RegisterWellKnownServiceType(
+                  typeof(HelloService),
+                  "HelloService",
+                  WellKnownObjectMode.Singleton);
+            }
+            else
+            {
+                myRem = new HelloService();
+                RemotingServices.Marshal(myRem, "HelloService");
+            }
+            System.Console.WriteLine("<enter> to exit...");
             System.Console.ReadLine();
         }
     }
