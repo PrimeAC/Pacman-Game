@@ -5,8 +5,16 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Net.Sockets;
+using System.Runtime;
+using System.Runtime.Remoting.Channels.Tcp;
+using System.Runtime.Remoting.Channels;
+using RemoteServices;
+using System.Net;
+using static pacman.Client;
 
 
 namespace pacman {
@@ -46,28 +54,11 @@ namespace pacman {
 
         List<string> clients = new List<string>();
 
-
-        IServer server;
         
-        public Form1(string gameRate) {
-            port = FreeTcpPort();
-            System.Console.WriteLine(port);
-            TcpChannel chan = new TcpChannel(port);
-            ChannelServices.RegisterChannel(chan, false);
+        public Form1(string gameRate, IServer server, int port) {
 
-            // Alternative 1 for service activation
-            ClientServices service = new ClientServices();
-            RemotingServices.Marshal(service, "Client",
-                typeof(ClientServices));
+            this.port = port;
 
-           // RemotingConfiguration.RegisterWellKnownServiceType(
-             //   typeof(ClientServices), "Client",
-               // WellKnownObjectMode.Singleton);
-            Thread.Sleep(5000);
-            IServer server = (IServer)Activator.GetObject(typeof(IServer), "tcp://localhost:8086/Server");
-            string gameRate = server.RegisterClient(port.ToString());
-            this.server = server;
-            Thread.Sleep(10000);
             foreach (IClient client in server.getClients())
             {
                 if(!client.getPort().Equals(port.ToString()))
@@ -75,11 +66,7 @@ namespace pacman {
                     clients.Add(client.getPort());
                 }
             }
-
-            foreach(string x in clients)
-            {
-                Console.WriteLine("porta: " + x);
-            }
+            
 
             InitializeComponent();
             label2.Visible = false;
@@ -247,8 +234,8 @@ namespace pacman {
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            //InitializeSender();
-            //InitializeReceiver();
+            InitializeSender();
+            InitializeReceiver();
         }
 
         private void InitializeSender(){
@@ -275,30 +262,5 @@ namespace pacman {
             
         }
 
-
-
-        public class ClientServices : MarshalByRefObject, IClient
-        {
-            public string port;
-
-            public ClientServices()
-            {
-            }
-
-            public void setPort(string port)
-            {
-                this.port = port;
-            }
-
-            public string getPort()
-            {
-                return port;
-            }
-
-            public void startGame()
-            {
-                
-            }
-        }
     }
 }
