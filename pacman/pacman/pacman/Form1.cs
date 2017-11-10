@@ -5,16 +5,9 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Runtime.Remoting;
-using System.Runtime.Remoting.Channels;
-using System.Runtime.Remoting.Channels.Tcp;
-using System.Net.Sockets;
 
-using RemoteServices;
-using System.Net;
 
 namespace pacman {
     public partial class Form1 : Form {
@@ -42,6 +35,7 @@ namespace pacman {
         int ghost3x = 5;
         int ghost3y = 5;
 
+
         int port;
         string brodcastAddress = "255.255.255.255";
         UdpClient receivingClient;
@@ -55,7 +49,7 @@ namespace pacman {
 
         IServer server;
         
-        public Form1() {
+        public Form1(string gameRate) {
             port = FreeTcpPort();
             System.Console.WriteLine(port);
             TcpChannel chan = new TcpChannel(port);
@@ -87,20 +81,10 @@ namespace pacman {
                 Console.WriteLine("porta: " + x);
             }
 
-
             InitializeComponent();
             label2.Visible = false;
             this.timer1.Interval = Int32.Parse(gameRate);
 
-        }
-
-        private int FreeTcpPort()
-        {
-            TcpListener tcpListener = new TcpListener(IPAddress.Loopback, 0);
-            tcpListener.Start();
-            int port = ((IPEndPoint)tcpListener.LocalEndpoint).Port;
-            tcpListener.Stop();
-            return port;
         }
 
         private void keyisdown(object sender, KeyEventArgs e) {

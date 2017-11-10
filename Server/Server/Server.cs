@@ -18,11 +18,25 @@ namespace Server
 
         static void Main(string[] args)
         {
+            TcpChannel channel = new TcpChannel(8086);
+            ChannelServices.RegisterChannel(channel, false);
+
+            //Alternative 1
+            //RemotingConfiguration.RegisterWellKnownServiceType(
+            //    typeof(ServerServices), "Server",
+            //    WellKnownObjectMode.Singleton);
+
+            //Alternative 2 
+            ServerServices service = new ServerServices();
+            RemotingServices.Marshal(service, "Server",
+                typeof(ServerServices));
+
             System.Console.WriteLine("Please enter the desired game rate:");
             MSEC_PER_ROUND = System.Console.ReadLine();
 
             System.Console.WriteLine("Please enter the number of players:");
-            NUM_PLAYERS= Int32.Parse(System.Console.ReadLine());
+            NUM_PLAYERS = Int32.Parse(System.Console.ReadLine());
+
 
             TcpChannel channel = new TcpChannel(8086);
             ChannelServices.RegisterChannel(channel, false);
@@ -31,12 +45,16 @@ namespace Server
             RemotingServices.Marshal(
                 service,"Server",typeof(ServerServices));
 
-            while(service.clients.Count != NUM_PLAYERS)
+            while (service.clients.Count != NUM_PLAYERS)
             {
                 continue;
             }
 
-            
+            foreach (IClient client in service.clients.ToList())
+            {
+                System.Console.WriteLine(client.GetHashCode());
+                client.startGame(MSEC_PER_ROUND);
+            }
             System.Console.WriteLine("Press <enter> to terminate game server...");
             System.Console.ReadLine();
         }
@@ -51,7 +69,7 @@ namespace Server
                 clients = new List<IClient>();
             }
 
-            public string RegisterClient(string NewClientPort)
+            public void RegisterClient(string NewClientPort)
             {
                 Console.WriteLine("New client listening at " + "tcp://localhost:" + NewClientPort + "/Client");
                 IClient newClient =
@@ -59,8 +77,6 @@ namespace Server
                            typeof(IClient), "tcp://localhost:" + NewClientPort + "/Client");
                 newClient.setPort(NewClientPort);
                 clients.Add(newClient);
-                Console.WriteLine(clients);
-                return MSEC_PER_ROUND;
             }
 
             public List<IClient> getClients()
