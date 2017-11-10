@@ -10,10 +10,12 @@ namespace RemoteServices
     public interface IServer
     {
         string RegisterClient(string NewClientPort);
+        //void sendMove(string clientPort, string move);
     }
 
     public interface IClient
     {
-        string GetMove();
+        void startGame();
+        //void updateGameState();
     }
 }

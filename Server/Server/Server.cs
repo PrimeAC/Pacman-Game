@@ -11,39 +11,53 @@ using RemoteServices;
 
 namespace Server
 {
-    class Server
+    static class Server
     {
+        private static string MSEC_PER_ROUND;
+        private static int NUM_PLAYERS;
 
         static void Main(string[] args)
         {
-            
+            System.Console.WriteLine("Please enter the desired game rate:");
+            MSEC_PER_ROUND = System.Console.ReadLine();
+
+            System.Console.WriteLine("Please enter the number of players:");
+            NUM_PLAYERS= Int32.Parse(System.Console.ReadLine());
+
             TcpChannel channel = new TcpChannel(8086);
             ChannelServices.RegisterChannel(channel, false);
             RemotingConfiguration.RegisterWellKnownServiceType(
                 typeof(ServerServices), "Server",
                 WellKnownObjectMode.Singleton);
-            System.Console.WriteLine("Press <enter> to terminate chat server...");
+
+            while(ServerServices.clients.Count != NUM_PLAYERS)
+            {
+                continue;
+            }
+
+
+            System.Console.WriteLine("Press <enter> to terminate game server...");
             System.Console.ReadLine();
         }
 
         class ServerServices : MarshalByRefObject, IServer
         {
-            List<IClient> clients;
+
+            internal static List<IClient> clients;
 
             ServerServices()
             {
                 clients = new List<IClient>();
             }
 
-
-            public string RegisterClient(string NewClientName)
+            public string RegisterClient(string NewClientPort)
             {
-                Console.WriteLine("New client listening at " + "tcp://localhost:" + NewClientName + "/Client");
+                Console.WriteLine("New client listening at " + "tcp://localhost:" + NewClientPort + "/Client");
                 IClient newClient =
                     (IClient)Activator.GetObject(
-                           typeof(IClient), "tcp://localhost:" + NewClientName + "/Client");
+                           typeof(IClient), "tcp://localhost:" + NewClientPort + "/Client");
                 clients.Add(newClient);
-                return "20";
+                return MSEC_PER_ROUND;
             }
         }
     }

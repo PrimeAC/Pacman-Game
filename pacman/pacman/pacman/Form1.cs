@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Runtime.Remoting;
@@ -57,19 +58,19 @@ namespace pacman {
             RemotingConfiguration.RegisterWellKnownServiceType(
                 typeof(ClientServices), "Client",
                 WellKnownObjectMode.Singleton);
-
+            Thread.Sleep(5000);
             IServer server = (IServer)Activator.GetObject(typeof(IServer), "tcp://localhost:8086/Server");
-            string rate = server.RegisterClient(port.ToString());
+            string gameRate = server.RegisterClient(port.ToString());
             this.server = server;
-            
 
             InitializeComponent();
             label2.Visible = false;
+            this.timer1.Interval = Int32.Parse(gameRate);
+
         }
 
         private int FreeTcpPort()
         {
-            //IPAddress ipAddress = Dns.Resolve("localhost").AddressList[0];
             TcpListener tcpListener = new TcpListener(IPAddress.Loopback, 0);
             tcpListener.Start();
             int port = ((IPEndPoint)tcpListener.LocalEndpoint).Port;
@@ -212,9 +213,10 @@ namespace pacman {
             {
             }
 
-            public string GetMove()
+
+            public void startGame()
             {
-                return "a tua mae";
+                
             }
         }
     }
