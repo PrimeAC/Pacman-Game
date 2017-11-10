@@ -37,14 +37,6 @@ namespace Server
             System.Console.WriteLine("Please enter the number of players:");
             NUM_PLAYERS = Int32.Parse(System.Console.ReadLine());
 
-
-            TcpChannel channel = new TcpChannel(8086);
-            ChannelServices.RegisterChannel(channel, false);
-            ServerServices service = new ServerServices();
-
-            RemotingServices.Marshal(
-                service,"Server",typeof(ServerServices));
-
             while (service.clients.Count != NUM_PLAYERS)
             {
                 continue;
