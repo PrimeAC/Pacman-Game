@@ -26,16 +26,17 @@ namespace Server
 
             TcpChannel channel = new TcpChannel(8086);
             ChannelServices.RegisterChannel(channel, false);
-            RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(ServerServices), "Server",
-                WellKnownObjectMode.Singleton);
+            ServerServices service = new ServerServices();
 
-            while(ServerServices.clients.Count != NUM_PLAYERS)
+            RemotingServices.Marshal(
+                service,"Server",typeof(ServerServices));
+
+            while(service.clients.Count != NUM_PLAYERS)
             {
                 continue;
             }
 
-
+            
             System.Console.WriteLine("Press <enter> to terminate game server...");
             System.Console.ReadLine();
         }
@@ -43,9 +44,9 @@ namespace Server
         class ServerServices : MarshalByRefObject, IServer
         {
 
-            internal static List<IClient> clients;
+            internal List<IClient> clients;
 
-            ServerServices()
+            internal ServerServices()
             {
                 clients = new List<IClient>();
             }
@@ -56,8 +57,15 @@ namespace Server
                 IClient newClient =
                     (IClient)Activator.GetObject(
                            typeof(IClient), "tcp://localhost:" + NewClientPort + "/Client");
+                newClient.setPort(NewClientPort);
                 clients.Add(newClient);
+                Console.WriteLine(clients);
                 return MSEC_PER_ROUND;
+            }
+
+            public List<IClient> getClients()
+            {
+                return clients;
             }
         }
     }
