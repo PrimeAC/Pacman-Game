@@ -8,6 +8,7 @@ using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 
 using RemoteServices;
+using System.Timers;
 
 namespace Server
 {
@@ -15,9 +16,14 @@ namespace Server
     {
         private static string MSEC_PER_ROUND;
         private static int NUM_PLAYERS;
+        public static Dictionary<string, string> moves = new Dictionary<string, string>();
+        public static List<IClient> clients;
+
+        private static System.Timers.Timer aTimer;
 
         static void Main(string[] args)
         {
+
             TcpChannel channel = new TcpChannel(8086);
             ChannelServices.RegisterChannel(channel, false);
 
@@ -37,25 +43,23 @@ namespace Server
             System.Console.WriteLine("Please enter the number of players:");
             NUM_PLAYERS = Int32.Parse(System.Console.ReadLine());
 
-            while (service.clients.Count != NUM_PLAYERS)
+            while (clients.Count != NUM_PLAYERS)
             {
                 continue;
             }
 
-            foreach (IClient client in service.clients.ToList())
+            foreach (IClient client in clients.ToList())
             {
                 System.Console.WriteLine(client.GetHashCode());
-                client.startGame(MSEC_PER_ROUND);
+                client.startGame(MSEC_PER_ROUND, NUM_PLAYERS.ToString());
             }
+
             System.Console.WriteLine("Press <enter> to terminate game server...");
             System.Console.ReadLine();
         }
 
         class ServerServices : MarshalByRefObject, IServer
         {
-
-            internal List<IClient> clients;
-
             internal ServerServices()
             {
                 clients = new List<IClient>();
@@ -74,6 +78,21 @@ namespace Server
             public List<IClient> getClients()
             {
                 return clients;
+            }
+
+            public void sendMove(string port, string move)
+            {
+                moves.Add(port, move);
+
+                Console.WriteLine("timer");
+                foreach (KeyValuePair<string, string> entry in moves.ToList())
+                {
+                    foreach (IClient client in clients)
+                    {
+                        client.updateGameState(entry.Value);
+                    }
+                }
+                moves.Clear();
             }
         }
     }

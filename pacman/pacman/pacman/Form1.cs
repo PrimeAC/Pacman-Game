@@ -54,10 +54,14 @@ namespace pacman {
 
         List<string> clients = new List<string>();
 
+        IServer server;
         
-        public Form1(string gameRate, IServer server, int port) {
+        public Form1(string gameRate, string numPlayers, IServer server, int port) {
+
+            
 
             this.port = port;
+            this.server = server;
 
             foreach (IClient client in server.getClients())
             {
@@ -71,25 +75,59 @@ namespace pacman {
             InitializeComponent();
             label2.Visible = false;
             this.timer1.Interval = Int32.Parse(gameRate);
-
+            //playersInit(Int32.Parse(numPlayers));
         }
+
+        //private void playersInit(int numPlayers)
+        //{
+        //    if (numPlayers == 1)
+        //    {
+        //        this.pacman2.Enabled = false;
+        //        this.pacman3.Enabled = false;
+        //        this.pacman4.Enabled = false;
+        //        this.pacman5.Enabled = false;
+        //        this.pacman6.Enabled = false;
+        //    }
+        //    else if (numPlayers <= 2)
+        //    {
+        //        this.pacman3.Enabled = false;
+        //        this.pacman4.Enabled = false;
+        //        this.pacman5.Enabled = false;
+        //        this.pacman6.Enabled = false;
+        //    }
+        //    else if (numPlayers <= 3)
+        //    {
+        //        this.pacman4.Enabled = false;
+        //        this.pacman5.Enabled = false;
+        //        this.pacman6.Enabled = false;
+        //    }
+        //    else if (numPlayers <= 4)
+        //    {
+        //        this.pacman5.Enabled = false;
+        //        this.pacman6.Enabled = false;
+        //    }
+        //    else if (numPlayers <= 5)
+        //    {
+        //        this.pacman6.Enabled = false;
+        //    }
+        //}
 
         private void keyisdown(object sender, KeyEventArgs e) {
             if (e.KeyCode == Keys.Left) {
                 goleft = true;
-                pacman.Image = Properties.Resources.Left;
+                pacman1.Image = Properties.Resources.Left;
             }
             if (e.KeyCode == Keys.Right) {
                 goright = true;
-                pacman.Image = Properties.Resources.Right;
+                pacman1.Image = Properties.Resources.Right;
             }
             if (e.KeyCode == Keys.Up) {
                 goup = true;
-                pacman.Image = Properties.Resources.Up;
+                pacman1.Image = Properties.Resources.Up;
             }
             if (e.KeyCode == Keys.Down) {
                 godown = true;
-                pacman.Image = Properties.Resources.down;
+                pacman1.Image = Properties.Resources.down;
             }
             if (e.KeyCode == Keys.Enter) {
                     tbMsg.Enabled = true; tbMsg.Focus();
@@ -111,25 +149,72 @@ namespace pacman {
             }
         }
 
-        private void timer1_Tick(object sender, EventArgs e) {
-            label1.Text = "Score: " + score;
+        public void updateGame(string mov)
+        {
+
+            if (mov.Equals("left"))
+            {
+                goleft = true;
+            }
+
+            if (mov.Equals("right"))
+            {
+                goright = true;
+            }
+            if (mov.Equals("up"))
+            {
+                goup = true;
+            }
+            if (mov.Equals("down"))
+            {
+                godown = true;
+            }
+        }
+            
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            if (goleft)
+            {
+                server.sendMove(port.ToString(), "left");
+        
+            }
+            if (goright)
+            {
+                server.sendMove(port.ToString(), "right");
+
+            }
+            if (goup)
+            {
+                server.sendMove(port.ToString(), "up");
+ 
+            }
+            if (godown)
+            {
+                server.sendMove(port.ToString(), "down");
+
+            }
 
             //move player
-            if (goleft) {
-                if (pacman.Left > (boardLeft))
-                    pacman.Left -= speed;
+            if (goleft)
+            {
+                if (pacman1.Left > (boardLeft))
+                    pacman1.Left -= speed;
             }
-            if (goright) {
-                if (pacman.Left < (boardRight))
-                pacman.Left += speed;
+            if (goright)
+            {
+                if (pacman1.Left < (boardRight))
+                    pacman1.Left += speed;
             }
-            if (goup) {
-                if (pacman.Top > (boardTop))
-                    pacman.Top -= speed;
+            if (goup)
+            {
+                if (pacman1.Top > (boardTop))
+                    pacman1.Top -= speed;
             }
-            if (godown) {
-                if (pacman.Top < (boardBottom))
-                    pacman.Top += speed;
+            if (godown)
+            {
+                if (pacman1.Top < (boardBottom))
+                    pacman1.Top += speed;
             }
             //move ghosts
             redGhost.Left += ghost1;
@@ -149,50 +234,146 @@ namespace pacman {
                 ghost2 = -ghost2;
             //moving ghosts and bumping with the walls end
             //for loop to check walls, ghosts and points
-            foreach (Control x in this.Controls) {
+            foreach (Control x in this.Controls)
+            {
                 // checking if the player hits the wall or the ghost, then game is over
-                if (x is PictureBox && x.Tag == "wall" || x.Tag == "ghost") {
-                    if (((PictureBox)x).Bounds.IntersectsWith(pacman.Bounds)) {
-                        pacman.Left = 0;
-                        pacman.Top = 25;
+                if (x is PictureBox && x.Tag == "wall" || x.Tag == "ghost")
+                {
+                    if (((PictureBox)x).Bounds.IntersectsWith(pacman1.Bounds))
+                    {
+                        pacman1.Left = 0;
+                        pacman1.Top = 25;
                         label2.Text = "GAME OVER";
                         label2.Visible = true;
                         timer1.Stop();
                     }
                 }
-                if (x is PictureBox && x.Tag == "coin") {
-                    if (((PictureBox)x).Bounds.IntersectsWith(pacman.Bounds)) {
+                if (x is PictureBox && x.Tag == "coin")
+                {
+                    if (((PictureBox)x).Bounds.IntersectsWith(pacman1.Bounds))
+                    {
                         this.Controls.Remove(x);
                         score++;
                         //TODO check if all coins where "eaten"
-                        if (score == total_coins) {
+                        if (score == total_coins)
+                        {
                             //pacman.Left = 0;
                             //pacman.Top = 25;
                             label2.Text = "GAME WON!";
                             label2.Visible = true;
                             timer1.Stop();
-                            }
+                        }
                     }
                 }
             }
-                pinkGhost.Left += ghost3x;
-                pinkGhost.Top += ghost3y;
+            pinkGhost.Left += ghost3x;
+            pinkGhost.Top += ghost3y;
 
-                if (pinkGhost.Left < boardLeft ||
-                    pinkGhost.Left > boardRight ||
-                    (pinkGhost.Bounds.IntersectsWith(pictureBox1.Bounds)) ||
-                    (pinkGhost.Bounds.IntersectsWith(pictureBox2.Bounds)) ||
-                    (pinkGhost.Bounds.IntersectsWith(pictureBox3.Bounds)) ||
-                    (pinkGhost.Bounds.IntersectsWith(pictureBox4.Bounds))) {
-                    ghost3x = -ghost3x;
-                }
-                if (pinkGhost.Top < boardTop || pinkGhost.Top + pinkGhost.Height > boardBottom - 2) {
-                    ghost3y = -ghost3y;
-                }
-        }
+            if (pinkGhost.Left < boardLeft ||
+                pinkGhost.Left > boardRight ||
+                (pinkGhost.Bounds.IntersectsWith(pictureBox1.Bounds)) ||
+                (pinkGhost.Bounds.IntersectsWith(pictureBox2.Bounds)) ||
+                (pinkGhost.Bounds.IntersectsWith(pictureBox3.Bounds)) ||
+                (pinkGhost.Bounds.IntersectsWith(pictureBox4.Bounds)))
+            {
+                ghost3x = -ghost3x;
+            }
+            if (pinkGhost.Top < boardTop || pinkGhost.Top + pinkGhost.Height > boardBottom - 2)
+            {
+                ghost3y = -ghost3y;
+            }
+        
+    }
 
-        private void tbMsg_KeyDown(object sender, KeyEventArgs e) {
-            if (e.KeyCode == Keys.Enter) {
+        //private void timer1_Tick(object sender, EventArgs e) {
+        //    label1.Text = "Score: " + score;
+
+
+        //    //move player
+        //    if (goleft) {
+        //        server.sendMove(port.ToString(), "left");
+        //        if (pacman1.Left > (boardLeft))
+        //            pacman1.Left -= speed;
+        //    }
+        //    if (goright) {
+        //        server.sendMove(port.ToString(), "right");
+        //        if (pacman1.Left < (boardRight))
+        //        pacman1.Left += speed;
+        //    }
+        //    if (goup) {
+        //        server.sendMove(port.ToString(), "up");
+        //        if (pacman1.Top > (boardTop))
+        //            pacman1.Top -= speed;
+        //    }
+        //    if (godown) {
+        //        server.sendMove(port.ToString(), "down");
+        //        if (pacman1.Top < (boardBottom))
+        //            pacman1.Top += speed;
+        //    }
+        //    //move ghosts
+        //    redGhost.Left += ghost1;
+        //    yellowGhost.Left += ghost2;
+
+        //    // if the red ghost hits the picture box 4 then wereverse the speed
+        //    if (redGhost.Bounds.IntersectsWith(pictureBox1.Bounds))
+        //        ghost1 = -ghost1;
+        //    // if the red ghost hits the picture box 3 we reverse the speed
+        //    else if (redGhost.Bounds.IntersectsWith(pictureBox2.Bounds))
+        //        ghost1 = -ghost1;
+        //    // if the yellow ghost hits the picture box 1 then wereverse the speed
+        //    if (yellowGhost.Bounds.IntersectsWith(pictureBox3.Bounds))
+        //        ghost2 = -ghost2;
+        //    // if the yellow chost hits the picture box 2 then wereverse the speed
+        //    else if (yellowGhost.Bounds.IntersectsWith(pictureBox4.Bounds))
+        //        ghost2 = -ghost2;
+        //    //moving ghosts and bumping with the walls end
+        //    //for loop to check walls, ghosts and points
+        //    foreach (Control x in this.Controls) {
+        //        // checking if the player hits the wall or the ghost, then game is over
+        //        if (x is PictureBox && x.Tag == "wall" || x.Tag == "ghost") {
+        //            if (((PictureBox)x).Bounds.IntersectsWith(pacman1.Bounds)) {
+        //                pacman1.Left = 0;
+        //                pacman1.Top = 25;
+        //                label2.Text = "GAME OVER";
+        //                label2.Visible = true;
+        //                timer1.Stop();
+        //            }
+        //        }
+        //        if (x is PictureBox && x.Tag == "coin") {
+        //            if (((PictureBox)x).Bounds.IntersectsWith(pacman1.Bounds)) {
+        //                this.Controls.Remove(x);
+        //                score++;
+        //                //TODO check if all coins where "eaten"
+        //                if (score == total_coins) {
+        //                    //pacman.Left = 0;
+        //                    //pacman.Top = 25;
+        //                    label2.Text = "GAME WON!";
+        //                    label2.Visible = true;
+        //                    timer1.Stop();
+        //                    }
+        //            }
+        //        }
+        //    }
+        //        pinkGhost.Left += ghost3x;
+        //        pinkGhost.Top += ghost3y;
+
+        //        if (pinkGhost.Left < boardLeft ||
+        //            pinkGhost.Left > boardRight ||
+        //            (pinkGhost.Bounds.IntersectsWith(pictureBox1.Bounds)) ||
+        //            (pinkGhost.Bounds.IntersectsWith(pictureBox2.Bounds)) ||
+        //            (pinkGhost.Bounds.IntersectsWith(pictureBox3.Bounds)) ||
+        //            (pinkGhost.Bounds.IntersectsWith(pictureBox4.Bounds))) {
+        //            ghost3x = -ghost3x;
+        //        }
+        //        if (pinkGhost.Top < boardTop || pinkGhost.Top + pinkGhost.Height > boardBottom - 2) {
+        //            ghost3y = -ghost3y;
+        //        }
+        //}
+
+        private void tbMsg_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
 
                 string toSend = port + ": " + tbMsg.Text;
                 byte[] data = Encoding.ASCII.GetBytes(toSend);
@@ -204,63 +385,63 @@ namespace pacman {
             }
         }
 
-        private void Receiver()
-        {
+        //public void Receiver()
+        //{
 
-            if (clients != null)
-            {
-                foreach (string portToConnect in clients)
-                {
-                    
-                    IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, Int32.Parse(portToConnect));
-                    AddMessage messageDelegate = MessageReceived;
+        //    if (clients != null)
+        //    {
+        //        foreach (string portToConnect in clients)
+        //        {
 
-                    while (true)
-                    {
-                        byte[] data = receivingClient.Receive(ref endPoint);
-                        string message = Encoding.ASCII.GetString(data);
-                        Invoke(messageDelegate, message);
-                    }
+        //            IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, Int32.Parse(portToConnect));
+        //            AddMessage messageDelegate = MessageReceived;
 
-                }
+        //            while (true)
+        //            {
+        //                byte[] data = receivingClient.Receive(ref endPoint);
+        //                string message = Encoding.ASCII.GetString(data);
+        //                Invoke(messageDelegate, message);
+        //            }
 
-            }
-        }
+        //        }
 
-        private void MessageReceived(string message)
-        {
-            tbChat.Text += "\r\n" + message;
-        }
+        //    }
+        //}
+
+        //private void MessageReceived(string message)
+        //{
+        //    tbChat.Text += "\r\n" + message;
+        //}
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            InitializeSender();
-            InitializeReceiver();
+        //    InitializeSender();
+        //    InitializeReceiver();
         }
 
-        private void InitializeSender(){
+        //private void InitializeSender(){
 
-            sendingClient = new UdpClient(brodcastAddress, port);
-            sendingClient.EnableBroadcast = true;
-        }
+        //    sendingClient = new UdpClient(brodcastAddress, port);
+        //    sendingClient.EnableBroadcast = true;
+        //}
 
-        private void InitializeReceiver()
-        {
-            if (clients != null)
-            {
-                foreach (string portToConnect in clients)
-                {
-                    receivingClient = new UdpClient(Int32.Parse(portToConnect));
-                    
-                    ThreadStart start = new ThreadStart(Receiver);
-                    receivingThread = new Thread(start);
-                    receivingThread.IsBackground = true;
-                    receivingThread.Start();
+        //private void InitializeReceiver()
+        //{
+        //    if (clients != null)
+        //    {
+        //        foreach (string portToConnect in clients)
+        //        {
+        //            //receivingClient = new UdpClient(Int32.Parse(portToConnect));
 
-                }
-            }
-            
-        }
+        //            ThreadStart start = new ThreadStart(Receiver);
+        //            receivingThread = new Thread(start);
+        //            receivingThread.IsBackground = true;
+        //            receivingThread.Start();
+
+        //        }
+        //    }
+
+        //}
 
     }
 }

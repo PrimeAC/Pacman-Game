@@ -11,15 +11,16 @@ namespace RemoteServices
     {
         List<IClient> getClients();
         void RegisterClient(string NewClientPort);
-        //void sendMove(string clientPort, string move);
+        void sendMove(string clientPort, string move);
     }
 
     public interface IClient
     {
         void setPort(string port);
         string getPort();
-        void startGame(string gameRate);
+        void startGame(string gameRate, string numPlayers);
         string getGameRate();
-        //void updateGameState();
+        string getNumPlayers();
+        void updateGameState(string mov);
     }
 }

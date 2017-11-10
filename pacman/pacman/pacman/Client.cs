@@ -16,6 +16,7 @@ using System.Net;
 namespace pacman {
     class Client {
 
+        static Form1 form;
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -46,7 +47,8 @@ namespace pacman {
             
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1(service.getGameRate(), server, port));
+            form = new Form1(service.getGameRate(), service.getNumPlayers(), server, port);
+            Application.Run(form);
 
         }
 
@@ -63,6 +65,7 @@ namespace pacman {
         {
             internal Boolean start = false;
             internal string gameRate;
+            internal string numPlayers;
             public string port;
 
             internal ClientServices()
@@ -79,15 +82,26 @@ namespace pacman {
                 return this.port;
             }
 
-            public void startGame(string gameRate)
+            public void startGame(string gameRate, string numPlayers)
             {
                 this.gameRate = gameRate;
+                this.numPlayers = numPlayers;
                 this.start = true;
             }
 
             public string getGameRate()
             {
                 return this.gameRate;
+            }
+
+            public string getNumPlayers()
+            {
+                return this.numPlayers;
+            }
+
+            public void updateGameState(string mov)
+            {
+                form.updateGame(mov);
             }
         }
 
