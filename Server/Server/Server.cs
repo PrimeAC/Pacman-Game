@@ -38,7 +38,13 @@ namespace Server
             NUM_PLAYERS = Int32.Parse(System.Console.ReadLine());
 
 
-            // TODO refactor this really bad code
+            TcpChannel channel = new TcpChannel(8086);
+            ChannelServices.RegisterChannel(channel, false);
+            ServerServices service = new ServerServices();
+
+            RemotingServices.Marshal(
+                service,"Server",typeof(ServerServices));
+
             while (service.clients.Count != NUM_PLAYERS)
             {
                 continue;
@@ -69,7 +75,13 @@ namespace Server
                 IClient newClient =
                     (IClient)Activator.GetObject(
                            typeof(IClient), "tcp://localhost:" + NewClientPort + "/Client");
+                newClient.setPort(NewClientPort);
                 clients.Add(newClient);
+            }
+
+            public List<IClient> getClients()
+            {
+                return clients;
             }
         }
     }

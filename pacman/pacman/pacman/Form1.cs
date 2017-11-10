@@ -35,10 +35,51 @@ namespace pacman {
         int ghost3x = 5;
         int ghost3y = 5;
 
-   
+
+        int port;
+        string brodcastAddress = "255.255.255.255";
+        UdpClient receivingClient;
+        UdpClient sendingClient;
+        Thread receivingThread;
+        delegate void AddMessage(string message);
+
+
+        List<string> clients = new List<string>();
+
+
+        IServer server;
         
         public Form1(string gameRate) {
-            
+            port = FreeTcpPort();
+            System.Console.WriteLine(port);
+            TcpChannel chan = new TcpChannel(port);
+            ChannelServices.RegisterChannel(chan, false);
+
+            // Alternative 1 for service activation
+            ClientServices service = new ClientServices();
+            RemotingServices.Marshal(service, "Client",
+                typeof(ClientServices));
+
+           // RemotingConfiguration.RegisterWellKnownServiceType(
+             //   typeof(ClientServices), "Client",
+               // WellKnownObjectMode.Singleton);
+            Thread.Sleep(5000);
+            IServer server = (IServer)Activator.GetObject(typeof(IServer), "tcp://localhost:8086/Server");
+            string gameRate = server.RegisterClient(port.ToString());
+            this.server = server;
+            Thread.Sleep(10000);
+            foreach (IClient client in server.getClients())
+            {
+                if(!client.getPort().Equals(port.ToString()))
+                {
+                    clients.Add(client.getPort());
+                }
+            }
+
+            foreach(string x in clients)
+            {
+                Console.WriteLine("porta: " + x);
+            }
 
             InitializeComponent();
             label2.Visible = false;
@@ -165,15 +206,99 @@ namespace pacman {
 
         private void tbMsg_KeyDown(object sender, KeyEventArgs e) {
             if (e.KeyCode == Keys.Enter) {
-                tbChat.Text += "\r\n" + tbMsg.Text; tbMsg.Clear(); tbMsg.Enabled = false; this.Focus();
+
+                string toSend = port + ": " + tbMsg.Text;
+                byte[] data = Encoding.ASCII.GetBytes(toSend);
+                sendingClient.Send(data, data.Length);
+                tbChat.Text += "\r\n" + port + ": " + tbMsg.Text;
+                tbMsg.Clear();
+                tbMsg.Enabled = false;
+                this.Focus();
             }
+        }
+
+        private void Receiver()
+        {
+
+            if (clients != null)
+            {
+                foreach (string portToConnect in clients)
+                {
+                    
+                    IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, Int32.Parse(portToConnect));
+                    AddMessage messageDelegate = MessageReceived;
+
+                    while (true)
+                    {
+                        byte[] data = receivingClient.Receive(ref endPoint);
+                        string message = Encoding.ASCII.GetString(data);
+                        Invoke(messageDelegate, message);
+                    }
+
+                }
+
+            }
+        }
+
+        private void MessageReceived(string message)
+        {
+            tbChat.Text += "\r\n" + message;
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-
+            //InitializeSender();
+            //InitializeReceiver();
         }
 
-        
+        private void InitializeSender(){
+
+            sendingClient = new UdpClient(brodcastAddress, port);
+            sendingClient.EnableBroadcast = true;
+        }
+
+        private void InitializeReceiver()
+        {
+            if (clients != null)
+            {
+                foreach (string portToConnect in clients)
+                {
+                    receivingClient = new UdpClient(Int32.Parse(portToConnect));
+                    
+                    ThreadStart start = new ThreadStart(Receiver);
+                    receivingThread = new Thread(start);
+                    receivingThread.IsBackground = true;
+                    receivingThread.Start();
+
+                }
+            }
+            
+        }
+
+
+
+        public class ClientServices : MarshalByRefObject, IClient
+        {
+            public string port;
+
+            public ClientServices()
+            {
+            }
+
+            public void setPort(string port)
+            {
+                this.port = port;
+            }
+
+            public string getPort()
+            {
+                return port;
+            }
+
+            public void startGame()
+            {
+                
+            }
+        }
     }
 }
