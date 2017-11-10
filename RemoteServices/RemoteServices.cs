@@ -19,6 +19,7 @@ namespace RemoteServices
         void setPort(string port);
         string getPort();
         void startGame(string gameRate);
+        string getGameRate();
         //void updateGameState();
     }
 }

@@ -63,9 +63,20 @@ namespace pacman {
         {
             internal Boolean start = false;
             internal string gameRate;
+            public string port;
 
             internal ClientServices()
             {
+            }
+
+            public void setPort(string port)
+            {
+                this.port = port;
+            }
+
+            public string getPort()
+            {
+                return this.port;
             }
 
             public void startGame(string gameRate)
