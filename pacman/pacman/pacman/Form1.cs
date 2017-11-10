@@ -5,16 +5,9 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Runtime.Remoting;
-using System.Runtime.Remoting.Channels;
-using System.Runtime.Remoting.Channels.Tcp;
-using System.Net.Sockets;
 
-using RemoteServices;
-using System.Net;
 
 namespace pacman {
     public partial class Form1 : Form {
@@ -42,40 +35,15 @@ namespace pacman {
         int ghost3x = 5;
         int ghost3y = 5;
 
-        IServer server;
+   
         
-        public Form1() {
-            int port = FreeTcpPort();
-            System.Console.WriteLine(port);
-            TcpChannel chan = new TcpChannel(port);
-            ChannelServices.RegisterChannel(chan, false);
-
-            // Alternative 1 for service activation
-            //ChatClientServices servicos = new ChatClientServices();
-            //RemotingServices.Marshal(servicos, "ChatClient",
-            //    typeof(ChatClientServices));
-
-            RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(ClientServices), "Client",
-                WellKnownObjectMode.Singleton);
-            Thread.Sleep(5000);
-            IServer server = (IServer)Activator.GetObject(typeof(IServer), "tcp://localhost:8086/Server");
-            string gameRate = server.RegisterClient(port.ToString());
-            this.server = server;
+        public Form1(string gameRate) {
+            
 
             InitializeComponent();
             label2.Visible = false;
             this.timer1.Interval = Int32.Parse(gameRate);
 
-        }
-
-        private int FreeTcpPort()
-        {
-            TcpListener tcpListener = new TcpListener(IPAddress.Loopback, 0);
-            tcpListener.Start();
-            int port = ((IPEndPoint)tcpListener.LocalEndpoint).Port;
-            tcpListener.Stop();
-            return port;
         }
 
         private void keyisdown(object sender, KeyEventArgs e) {
@@ -206,18 +174,6 @@ namespace pacman {
 
         }
 
-        public class ClientServices : MarshalByRefObject, IClient
-        {
-
-            public ClientServices()
-            {
-            }
-
-
-            public void startGame()
-            {
-                
-            }
-        }
+        
     }
 }
