@@ -55,13 +55,15 @@ namespace pacman {
         List<string> clients = new List<string>();
 
         IServer server;
-        
-        public Form1(string gameRate, string numPlayers, IServer server, int port) {
+        IClient client2;
+
+        public Form1(string gameRate, string numPlayers, IServer server, int port, IClient client1) {
 
             
 
             this.port = port;
             this.server = server;
+            this.client2 = client1;
 
             foreach (IClient client in server.getClients())
             {
@@ -76,6 +78,15 @@ namespace pacman {
             label2.Visible = false;
             this.timer1.Interval = Int32.Parse(gameRate);
             //playersInit(Int32.Parse(numPlayers));
+
+            ClientServices.form = this;
+            List<string> messages = client2.getMessages();
+            Console.WriteLine("numero de mensagens: " + messages.Count);
+            foreach (object o in messages)
+            {
+                AddMsg((string)o);
+            }
+            
         }
 
         //private void playersInit(int numPlayers)
@@ -374,44 +385,24 @@ namespace pacman {
         {
             if (e.KeyCode == Keys.Enter)
             {
-
-                string toSend = port + ": " + tbMsg.Text;
-                byte[] data = Encoding.ASCII.GetBytes(toSend);
-                sendingClient.Send(data, data.Length);
-                tbChat.Text += "\r\n" + port + ": " + tbMsg.Text;
+                client2.SendMsg(port + ": " + tbMsg.Text);
                 tbMsg.Clear();
                 tbMsg.Enabled = false;
                 this.Focus();
             }
         }
 
-        //public void Receiver()
-        //{
 
-        //    if (clients != null)
-        //    {
-        //        foreach (string portToConnect in clients)
-        //        {
+        public void AddMsg(string s)
+        {
+            this.tbChat.AppendText("\r\n" + s);
+        }
 
-        //            IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, Int32.Parse(portToConnect));
-        //            AddMessage messageDelegate = MessageReceived;
+        public IServer getServer()
+        {
+            return this.server;
+        }
 
-        //            while (true)
-        //            {
-        //                byte[] data = receivingClient.Receive(ref endPoint);
-        //                string message = Encoding.ASCII.GetString(data);
-        //                Invoke(messageDelegate, message);
-        //            }
-
-        //        }
-
-        //    }
-        //}
-
-        //private void MessageReceived(string message)
-        //{
-        //    tbChat.Text += "\r\n" + message;
-        //}
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -419,29 +410,6 @@ namespace pacman {
         //    InitializeReceiver();
         }
 
-        //private void InitializeSender(){
-
-        //    sendingClient = new UdpClient(brodcastAddress, port);
-        //    sendingClient.EnableBroadcast = true;
-        //}
-
-        //private void InitializeReceiver()
-        //{
-        //    if (clients != null)
-        //    {
-        //        foreach (string portToConnect in clients)
-        //        {
-        //            //receivingClient = new UdpClient(Int32.Parse(portToConnect));
-
-        //            ThreadStart start = new ThreadStart(Receiver);
-        //            receivingThread = new Thread(start);
-        //            receivingThread.IsBackground = true;
-        //            receivingThread.Start();
-
-        //        }
-        //    }
-
-        //}
-
+        
     }
 }

@@ -47,7 +47,7 @@ namespace pacman {
             
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            form = new Form1(service.getGameRate(), service.getNumPlayers(), server, port);
+            form = new Form1(service.getGameRate(), service.getNumPlayers(), server, port, service);
             Application.Run(form);
 
         }
@@ -60,6 +60,9 @@ namespace pacman {
             tcpListener.Stop();
             return port;
         }
+        
+        delegate void DelAddMsg(string mensagem);
+        
 
         public class ClientServices : MarshalByRefObject, IClient
         {
@@ -67,9 +70,14 @@ namespace pacman {
             internal string gameRate;
             internal string numPlayers;
             public string port;
-
+            
+            public static Form1 form;
+            public List<IClient> clients;
+            List<string> messages;
+            
             internal ClientServices()
             {
+                messages = new List<string>();
             }
 
             public void setPort(string port)
@@ -103,6 +111,48 @@ namespace pacman {
             {
                 form.updateGame(mov);
             }
+
+            public void MsgToClient(string mensagem)
+            {
+                // thread-safe access to form
+                form.Invoke(new DelAddMsg(form.AddMsg), mensagem);
+            }
+
+            public void SendMsg(string mensagem)
+            {
+                Console.WriteLine("sajhfdfaasfjsdfkjdsfjsdkfsdfsjdfsdfa");
+                messages.Add(mensagem);
+                ThreadStart ts = new ThreadStart(this.BroadcastMessage);
+                Thread t = new Thread(ts);
+                t.Start();
+            }
+            public void BroadcastMessage()
+            {
+                string MsgToBcast;
+                clients = form.getServer().getClients();
+                lock (this)
+                {
+                    MsgToBcast = messages[messages.Count - 1];
+                }
+                for (int i = 0; i < clients.Count; i++)
+                {
+                    try
+                    {
+                        ((IClient)clients[i]).MsgToClient(MsgToBcast);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Failed sending message to client. Removing client. " + e.Message);
+                        clients.RemoveAt(i);
+                    }
+                }
+            }
+
+            public List<string> getMessages()
+            {
+                return messages;
+            }
+
         }
 
     }

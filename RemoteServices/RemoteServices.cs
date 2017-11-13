@@ -11,7 +11,7 @@ namespace RemoteServices
     {
         List<IClient> getClients();
         void RegisterClient(string NewClientPort);
-        void sendMove(string clientPort, string move);
+        void sendMove(string port, string move);
     }
 
     public interface IClient
@@ -22,5 +22,9 @@ namespace RemoteServices
         string getGameRate();
         string getNumPlayers();
         void updateGameState(string mov);
+        void MsgToClient(string message);
+        void SendMsg(string message);
+        void BroadcastMessage();
+        List<string> getMessages();
     }
 }
