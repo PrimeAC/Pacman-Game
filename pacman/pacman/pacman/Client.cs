@@ -16,6 +16,8 @@ using System.Net;
 namespace pacman {
     class Client {
 
+        static object _lockclient = new Object();
+
         static Form1 form;
         /// <summary>
         /// The main entry point for the application.
@@ -42,7 +44,10 @@ namespace pacman {
             Console.WriteLine(service.start);
             while (service.start != true)
             {
-                continue;
+                lock (_lockclient)
+                {
+                    Monitor.Wait(_lockclient);
+                }
             }
             
             Application.EnableVisualStyles();
@@ -95,6 +100,10 @@ namespace pacman {
                 this.gameRate = gameRate;
                 this.numPlayers = numPlayers;
                 this.start = true;
+                lock(_lockclient)
+                {
+                    Monitor.Pulse(_lockclient);
+                }
             }
 
             public string getGameRate()

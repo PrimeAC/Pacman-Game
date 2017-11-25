@@ -9,6 +9,7 @@ using System.Runtime.Remoting.Channels.Tcp;
 
 using RemoteServices;
 using System.Timers;
+using System.Threading;
 
 namespace Server
 {
@@ -18,6 +19,8 @@ namespace Server
         private static int NUM_PLAYERS;
         public static Dictionary<string, string> moves = new Dictionary<string, string>();
         public static List<IClient> clients;
+
+        static object _lock = new Object();
 
         private static System.Timers.Timer aTimer;
 
@@ -43,10 +46,17 @@ namespace Server
             System.Console.WriteLine("Please enter the number of players:");
             NUM_PLAYERS = Int32.Parse(System.Console.ReadLine());
 
+
+            Console.WriteLine("Clients number -> " + clients.Count);
+
             while (clients.Count != NUM_PLAYERS)
             {
-                continue;
+                lock (_lock)
+                {
+                    Monitor.Wait(_lock);
+                }
             }
+            
 
             foreach (IClient client in clients.ToList())
             {
@@ -73,6 +83,10 @@ namespace Server
                            typeof(IClient), "tcp://localhost:" + NewClientPort + "/Client");
                 newClient.setPort(NewClientPort);
                 clients.Add(newClient);
+                lock (_lock)
+                {
+                    Monitor.Pulse(_lock);
+                }
             }
 
             public List<IClient> getClients()
@@ -83,6 +97,12 @@ namespace Server
             public void sendMove(string port, string move)
             {
                 moves.Add(port, move);
+
+                foreach (KeyValuePair<string, string> kvp in moves)
+                {
+                    //textBox3.Text += ("Key = {0}, Value = {1}", kvp.Key, kvp.Value);
+                    Console.WriteLine("Key = {0}, Value = {1}", kvp.Key, kvp.Value);
+                }
 
                 Console.WriteLine("timer");
                 foreach (KeyValuePair<string, string> entry in moves.ToList())

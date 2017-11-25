@@ -45,10 +45,7 @@ namespace pacman {
 
 
         int port;
-        string brodcastAddress = "255.255.255.255";
-        UdpClient receivingClient;
-        UdpClient sendingClient;
-        Thread receivingThread;
+
         delegate void AddMessage(string message);
 
 
@@ -77,7 +74,7 @@ namespace pacman {
             InitializeComponent();
             label2.Visible = false;
             this.timer1.Interval = Int32.Parse(gameRate);
-            //playersInit(Int32.Parse(numPlayers));
+            playersInit(Int32.Parse(numPlayers));
 
             ClientServices.form = this;
             List<string> messages = client2.getMessages();
@@ -89,16 +86,16 @@ namespace pacman {
             
         }
 
-        //private void playersInit(int numPlayers)
-        //{
-        //    if (numPlayers == 1)
-        //    {
-        //        this.pacman2.Enabled = false;
+        private void playersInit(int numPlayers)
+        {
+            if (numPlayers == 1)
+            {
+                this.pacman2.Visible = false;
         //        this.pacman3.Enabled = false;
         //        this.pacman4.Enabled = false;
         //        this.pacman5.Enabled = false;
-        //        this.pacman6.Enabled = false;
-        //    }
+        //       this.pacman6.Enabled = false;
+            }
         //    else if (numPlayers <= 2)
         //    {
         //        this.pacman3.Enabled = false;
@@ -121,7 +118,7 @@ namespace pacman {
         //    {
         //        this.pacman6.Enabled = false;
         //    }
-        //}
+        }
 
         private void keyisdown(object sender, KeyEventArgs e) {
             if (e.KeyCode == Keys.Left) {
@@ -160,6 +157,7 @@ namespace pacman {
             }
         }
 
+        //problema de quando jogar com 2 ou mais jogadores ele faz um movimento sempre na mesma direçao
         public void updateGame(string mov)
         {
 
@@ -180,30 +178,28 @@ namespace pacman {
             {
                 godown = true;
             }
-        }
+
             
+        }
+
 
         private void timer1_Tick(object sender, EventArgs e)
         {
             if (goleft)
             {
                 server.sendMove(port.ToString(), "left");
-        
             }
             if (goright)
             {
                 server.sendMove(port.ToString(), "right");
-
             }
             if (goup)
             {
                 server.sendMove(port.ToString(), "up");
- 
             }
             if (godown)
             {
                 server.sendMove(port.ToString(), "down");
-
             }
 
             //move player
@@ -226,6 +222,8 @@ namespace pacman {
             {
                 if (pacman1.Top < (boardBottom))
                     pacman1.Top += speed;
+
+                godown = false;
             }
             //move ghosts
             redGhost.Left += ghost1;
@@ -293,8 +291,8 @@ namespace pacman {
             {
                 ghost3y = -ghost3y;
             }
-        
-    }
+
+        }
 
         //private void timer1_Tick(object sender, EventArgs e) {
         //    label1.Text = "Score: " + score;
@@ -410,6 +408,5 @@ namespace pacman {
         //    InitializeReceiver();
         }
 
-        
     }
 }
