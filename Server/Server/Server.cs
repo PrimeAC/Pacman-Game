@@ -20,6 +20,8 @@ namespace Server
         public static Dictionary<string, string> moves = new Dictionary<string, string>();
         public static List<IClient> clients;
 
+        public static Dictionary<string, int> pacmans = new Dictionary<string, int>();
+
         static object _lock = new Object();
 
         private static System.Timers.Timer aTimer;
@@ -68,6 +70,7 @@ namespace Server
             System.Console.ReadLine();
         }
 
+
         class ServerServices : MarshalByRefObject, IServer
         {
             internal ServerServices()
@@ -84,6 +87,7 @@ namespace Server
                 newClient.setPort(NewClientPort);
                 newClient.setIP(NewClientIP);
                 clients.Add(newClient);
+                pacmans.Add(NewClientIP + ":" + NewClientPort, clients.Count);
                 lock (_lock)
                 {
                     Monitor.Pulse(_lock);
