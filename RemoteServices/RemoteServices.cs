@@ -10,7 +10,7 @@ namespace RemoteServices
     public interface IServer
     {
         List<IClient> getClients();
-        void RegisterClient(string NewClientPort);
+        void RegisterClient(string NewClientIP, string NewClientPort);
         void sendMove(string port, string move);
     }
 
@@ -18,6 +18,8 @@ namespace RemoteServices
     {
         void setPort(string port);
         string getPort();
+        void setIP(string ip);
+        string getIP();
         void startGame(string gameRate, string numPlayers);
         string getGameRate();
         string getNumPlayers();

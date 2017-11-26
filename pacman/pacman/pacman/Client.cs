@@ -25,6 +25,7 @@ namespace pacman {
         [STAThread]
         static void Main() {
             int port = FreeTcpPort();
+            string ip = GetLocalIPAddress();
             TcpChannel chan = new TcpChannel(port);
             ChannelServices.RegisterChannel(chan, false);
 
@@ -39,7 +40,8 @@ namespace pacman {
             //    WellKnownObjectMode.Singleton);
 
             IServer server = (IServer)Activator.GetObject(typeof(IServer), "tcp://localhost:8086/Server");
-            server.RegisterClient(port.ToString());
+            server.RegisterClient(ip, port.ToString());
+            
 
             Console.WriteLine(service.start);
             while (service.start != true)
@@ -65,7 +67,20 @@ namespace pacman {
             tcpListener.Stop();
             return port;
         }
-        
+
+        private static string GetLocalIPAddress()
+        {
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    return ip.ToString();
+                }
+            }
+            throw new Exception("No network adapters with an IPv4 address in the system!");
+        }
+
         delegate void DelAddMsg(string mensagem);
         
 
@@ -75,6 +90,7 @@ namespace pacman {
             internal string gameRate;
             internal string numPlayers;
             public string port;
+            public string ip;
             
             public static Form1 form;
             public List<IClient> clients;
@@ -93,6 +109,16 @@ namespace pacman {
             public string getPort()
             {
                 return this.port;
+            }
+
+            public void setIP(string ip)
+            {
+                this.ip = ip;
+            }
+
+            public string getIP()
+            {
+                return this.ip;
             }
 
             public void startGame(string gameRate, string numPlayers)

@@ -75,13 +75,14 @@ namespace Server
                 clients = new List<IClient>();
             }
 
-            public void RegisterClient(string NewClientPort)
+            public void RegisterClient(string NewClientIP, string NewClientPort)
             {
-                Console.WriteLine("New client listening at " + "tcp://localhost:" + NewClientPort + "/Client");
+                Console.WriteLine("New client listening at " + "tcp://" + NewClientIP + ":" + NewClientPort + "/Client");
                 IClient newClient =
                     (IClient)Activator.GetObject(
-                           typeof(IClient), "tcp://localhost:" + NewClientPort + "/Client");
+                           typeof(IClient), "tcp://" + NewClientIP + ":" + NewClientPort + "/Client");
                 newClient.setPort(NewClientPort);
+                newClient.setIP(NewClientIP);
                 clients.Add(newClient);
                 lock (_lock)
                 {
