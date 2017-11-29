@@ -54,7 +54,7 @@ namespace pacman {
             
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            form = new Form1(service.getGameRate(), service.getNumPlayers(), server, port, service);
+            form = new Form1(service.getGameRate(), service.getNumPlayers(), server, ip, port, service);
             Application.Run(form);
 
         }

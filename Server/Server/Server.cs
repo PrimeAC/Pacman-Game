@@ -19,8 +19,10 @@ namespace Server
         private static int NUM_PLAYERS;
         public static Dictionary<string, string> moves = new Dictionary<string, string>();
         public static List<IClient> clients;
+        public static GameEngine engine;
 
-        public static Dictionary<string, int> pacmans = new Dictionary<string, int>();
+
+
 
         static object _lock = new Object();
 
@@ -66,6 +68,8 @@ namespace Server
                 client.startGame(MSEC_PER_ROUND, NUM_PLAYERS.ToString());
             }
 
+            engine.seePacmans();
+
             System.Console.WriteLine("Press <enter> to terminate game server...");
             System.Console.ReadLine();
         }
@@ -76,6 +80,7 @@ namespace Server
             internal ServerServices()
             {
                 clients = new List<IClient>();
+                engine = new GameEngine();
             }
 
             public void RegisterClient(string NewClientIP, string NewClientPort)
@@ -87,7 +92,8 @@ namespace Server
                 newClient.setPort(NewClientPort);
                 newClient.setIP(NewClientIP);
                 clients.Add(newClient);
-                pacmans.Add(NewClientIP + ":" + NewClientPort, clients.Count);
+                engine.getPacmans().Add(NewClientIP + ":" + NewClientPort, clients.Count);
+                
                 lock (_lock)
                 {
                     Monitor.Pulse(_lock);
@@ -99,17 +105,19 @@ namespace Server
                 return clients;
             }
 
-            public void sendMove(string port, string move)
+            public void sendMove(string ip, string port, string move)
             {
-                moves.Add(port, move);
+                moves.Add(ip+ ":" +port, move);
 
-                foreach (KeyValuePair<string, string> kvp in moves)
-                {
-                    //textBox3.Text += ("Key = {0}, Value = {1}", kvp.Key, kvp.Value);
-                    Console.WriteLine("Key = {0}, Value = {1}", kvp.Key, kvp.Value);
-                }
+                
 
-                Console.WriteLine("timer");
+                //foreach (KeyValuePair<string, string> kvp in moves)
+                //{
+                //    //textBox3.Text += ("Key = {0}, Value = {1}", kvp.Key, kvp.Value);
+                //    Console.WriteLine("Key = {0}, Value = {1}", kvp.Key, kvp.Value);
+                //}
+
+                //Console.WriteLine("timer");
                 foreach (KeyValuePair<string, string> entry in moves.ToList())
                 {
                     foreach (IClient client in clients)

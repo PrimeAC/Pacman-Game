@@ -11,7 +11,7 @@ namespace RemoteServices
     {
         List<IClient> getClients();
         void RegisterClient(string NewClientIP, string NewClientPort);
-        void sendMove(string port, string move);
+        void sendMove(string ip, string port, string move);
     }
 
     public interface IClient

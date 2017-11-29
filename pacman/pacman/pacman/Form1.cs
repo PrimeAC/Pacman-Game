@@ -45,6 +45,7 @@ namespace pacman {
 
 
         int port;
+        string ip;
 
         delegate void AddMessage(string message);
 
@@ -54,10 +55,10 @@ namespace pacman {
         IServer server;
         IClient client2;
 
-        public Form1(string gameRate, string numPlayers, IServer server, int port, IClient client1) {
+        public Form1(string gameRate, string numPlayers, IServer server, string ip, int port, IClient client1) {
 
-            
 
+            this.ip = ip;
             this.port = port;
             this.server = server;
             this.client2 = client1;
@@ -74,7 +75,7 @@ namespace pacman {
             InitializeComponent();
             label2.Visible = false;
             this.timer1.Interval = Int32.Parse(gameRate);
-            playersInit(Int32.Parse(numPlayers));
+            //playersInit(Int32.Parse(numPlayers));
 
             ClientServices.form = this;
             List<string> messages = client2.getMessages();
@@ -86,16 +87,16 @@ namespace pacman {
             
         }
 
-        private void playersInit(int numPlayers)
-        {
-            if (numPlayers == 1)
-            {
-                this.pacman2.Visible = false;
+        //private void playersInit(int numPlayers)
+        //{
+        //    if (numPlayers == 1)
+        //    {
+        //        this.pacman2.Visible = false;
         //        this.pacman3.Enabled = false;
         //        this.pacman4.Enabled = false;
         //        this.pacman5.Enabled = false;
         //       this.pacman6.Enabled = false;
-            }
+        //    }
         //    else if (numPlayers <= 2)
         //    {
         //        this.pacman3.Enabled = false;
@@ -118,24 +119,24 @@ namespace pacman {
         //    {
         //        this.pacman6.Enabled = false;
         //    }
-        }
+        //}
 
         private void keyisdown(object sender, KeyEventArgs e) {
             if (e.KeyCode == Keys.Left) {
                 goleft = true;
-                pacman1.Image = Properties.Resources.Left;
+                pacman.Image = Properties.Resources.Left;
             }
             if (e.KeyCode == Keys.Right) {
                 goright = true;
-                pacman1.Image = Properties.Resources.Right;
+                pacman.Image = Properties.Resources.Right;
             }
             if (e.KeyCode == Keys.Up) {
                 goup = true;
-                pacman1.Image = Properties.Resources.Up;
+                pacman.Image = Properties.Resources.Up;
             }
             if (e.KeyCode == Keys.Down) {
                 godown = true;
-                pacman1.Image = Properties.Resources.down;
+                pacman.Image = Properties.Resources.down;
             }
             if (e.KeyCode == Keys.Enter) {
                     tbMsg.Enabled = true; tbMsg.Focus();
@@ -187,41 +188,41 @@ namespace pacman {
         {
             if (goleft)
             {
-                server.sendMove(port.ToString(), "left");
+                server.sendMove(ip, port.ToString(), "left");
             }
             if (goright)
             {
-                server.sendMove(port.ToString(), "right");
+                server.sendMove(ip, port.ToString(), "right");
             }
             if (goup)
             {
-                server.sendMove(port.ToString(), "up");
+                server.sendMove(ip, port.ToString(), "up");
             }
             if (godown)
             {
-                server.sendMove(port.ToString(), "down");
+                server.sendMove(ip, port.ToString(), "down");
             }
 
             //move player
             if (goleft)
             {
-                if (pacman1.Left > (boardLeft))
-                    pacman1.Left -= speed;
+                if (pacman.Left > (boardLeft))
+                    pacman.Left -= speed;
             }
             if (goright)
             {
-                if (pacman1.Left < (boardRight))
-                    pacman1.Left += speed;
+                if (pacman.Left < (boardRight))
+                    pacman.Left += speed;
             }
             if (goup)
             {
-                if (pacman1.Top > (boardTop))
-                    pacman1.Top -= speed;
+                if (pacman.Top > (boardTop))
+                    pacman.Top -= speed;
             }
             if (godown)
             {
-                if (pacman1.Top < (boardBottom))
-                    pacman1.Top += speed;
+                if (pacman.Top < (boardBottom))
+                    pacman.Top += speed;
 
                 godown = false;
             }
@@ -248,10 +249,10 @@ namespace pacman {
                 // checking if the player hits the wall or the ghost, then game is over
                 if (x is PictureBox && x.Tag == "wall" || x.Tag == "ghost")
                 {
-                    if (((PictureBox)x).Bounds.IntersectsWith(pacman1.Bounds))
+                    if (((PictureBox)x).Bounds.IntersectsWith(pacman.Bounds))
                     {
-                        pacman1.Left = 0;
-                        pacman1.Top = 25;
+                        pacman.Left = 0;
+                        pacman.Top = 25;
                         label2.Text = "GAME OVER";
                         label2.Visible = true;
                         timer1.Stop();
@@ -259,7 +260,7 @@ namespace pacman {
                 }
                 if (x is PictureBox && x.Tag == "coin")
                 {
-                    if (((PictureBox)x).Bounds.IntersectsWith(pacman1.Bounds))
+                    if (((PictureBox)x).Bounds.IntersectsWith(pacman.Bounds))
                     {
                         this.Controls.Remove(x);
                         score++;
@@ -401,12 +402,6 @@ namespace pacman {
             return this.server;
         }
 
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-        //    InitializeSender();
-        //    InitializeReceiver();
-        }
 
     }
 }
