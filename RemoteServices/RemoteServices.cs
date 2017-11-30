@@ -23,7 +23,7 @@ namespace RemoteServices
         void startGame(string gameRate, string numPlayers);
         string getGameRate();
         string getNumPlayers();
-        void updateGameState(string mov);
+        void updateGameState(Dictionary<string, int[]> pacmans, Dictionary<int, int[]> ghosts, Dictionary<int, int[]> coins);
         void MsgToClient(string message);
         void SendMsg(string message);
         void BroadcastMessage();

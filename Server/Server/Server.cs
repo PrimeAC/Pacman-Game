@@ -17,11 +17,8 @@ namespace Server
     {
         private static string MSEC_PER_ROUND;
         private static int NUM_PLAYERS;
-        public static Dictionary<string, string> moves = new Dictionary<string, string>();
         public static List<IClient> clients;
         public static GameEngine engine;
-
-
 
 
         static object _lock = new Object();
@@ -67,7 +64,11 @@ namespace Server
                 System.Console.WriteLine(client.GetHashCode());
                 client.startGame(MSEC_PER_ROUND, NUM_PLAYERS.ToString());
             }
+            Console.WriteLine("vou parar");
+            System.Threading.Thread.Sleep(1000);
 
+            Console.WriteLine("ja voltei");
+            engine.startTimer(MSEC_PER_ROUND);
             engine.seePacmans();
 
             System.Console.WriteLine("Press <enter> to terminate game server...");
@@ -80,7 +81,8 @@ namespace Server
             internal ServerServices()
             {
                 clients = new List<IClient>();
-                engine = new GameEngine();
+                engine = new GameEngine(clients);
+
             }
 
             public void RegisterClient(string NewClientIP, string NewClientPort)
@@ -92,8 +94,27 @@ namespace Server
                 newClient.setPort(NewClientPort);
                 newClient.setIP(NewClientIP);
                 clients.Add(newClient);
-                engine.getPacmans().Add(NewClientIP + ":" + NewClientPort, clients.Count);
+                //engine.getPacmans().Add(NewClientIP + ":" + NewClientPort, new string[] { "8", engine.calculatePacmanPosY() });
+                engine.setPacmans(NewClientIP, NewClientPort);
+                //engine.getScore().Add(NewClientIP + ":" + NewClientPort, 0);
+                //engine.setScore(NewClientIP, NewClientPort);
+
                 
+                foreach (IClient client in clients)
+                {
+                    Console.WriteLine("cliente no servidor "+ client.getIP()+":"+client.getPort());
+                }
+                foreach (IClient client in engine.getClients())
+                {
+                    Console.WriteLine("cliente no motor " + client.getIP() + ":" + client.getPort());
+                }
+
+
+                if (clients.Equals(engine.getClients()))
+                {
+                    Console.WriteLine("sao iguais");
+                }
+
                 lock (_lock)
                 {
                     Monitor.Pulse(_lock);
@@ -107,9 +128,10 @@ namespace Server
 
             public void sendMove(string ip, string port, string move)
             {
-                moves.Add(ip+ ":" +port, move);
+                //engine.getMoves().Add(ip+ ":" +port, move);
+                engine.setMoves(ip, port, move);
+                //engine.update();
 
-                
 
                 //foreach (KeyValuePair<string, string> kvp in moves)
                 //{
@@ -118,14 +140,15 @@ namespace Server
                 //}
 
                 //Console.WriteLine("timer");
-                foreach (KeyValuePair<string, string> entry in moves.ToList())
-                {
-                    foreach (IClient client in clients)
-                    {
-                        client.updateGameState(entry.Value);
-                    }
-                }
-                moves.Clear();
+
+                //foreach (KeyValuePair<string, string> entry in engine.getMoves().ToList())
+                //{
+                //    foreach (IClient client in clients)
+                //    {
+                //        client.updateGameState(engine.getPacmans(), engine.getGhosts(), engine.getCoins());
+                //    }
+                //}
+                //engine.getMoves().Clear();
             }
         }
     }

@@ -51,10 +51,11 @@ namespace pacman {
                     Monitor.Wait(_lockclient);
                 }
             }
-            
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             form = new Form1(service.getGameRate(), service.getNumPlayers(), server, ip, port, service);
+            //form = new Form1(server, ip, port, service);
             Application.Run(form);
 
         }
@@ -82,6 +83,7 @@ namespace pacman {
         }
 
         delegate void DelAddMsg(string mensagem);
+        delegate void DelUpdateGame(Dictionary<string, int[]> pacmans, Dictionary<int, int[]> ghosts, Dictionary<int, int[]> coins);
         
 
         public class ClientServices : MarshalByRefObject, IClient
@@ -126,10 +128,11 @@ namespace pacman {
                 this.gameRate = gameRate;
                 this.numPlayers = numPlayers;
                 this.start = true;
-                lock(_lockclient)
+                lock (_lockclient)
                 {
                     Monitor.Pulse(_lockclient);
                 }
+                //form.initializeGame(gameRate, numPlayers);
             }
 
             public string getGameRate()
@@ -142,9 +145,13 @@ namespace pacman {
                 return this.numPlayers;
             }
 
-            public void updateGameState(string mov)
+            public void updateGameState(Dictionary<string, int[]> pacmans, Dictionary<int, int[]> ghosts, Dictionary<int, int[]> coins)
             {
-                form.updateGame(mov);
+                Console.WriteLine("entrei");
+                //DelUpdateGame DelUpdateGame = new DelUpdateGame(form.updateGame);
+                //DelUpdateGame(pacmans, ghosts, coins);
+                //form.updateGame(pacmans, ghosts, coins);
+                form.Invoke(new DelUpdateGame(form.updateGame), pacmans, ghosts, coins);
             }
 
             public void MsgToClient(string mensagem)
@@ -155,7 +162,6 @@ namespace pacman {
 
             public void SendMsg(string mensagem)
             {
-                Console.WriteLine("sajhfdfaasfjsdfkjdsfjsdkfsdfsjdfsdfa");
                 messages.Add(mensagem);
                 ThreadStart ts = new ThreadStart(this.BroadcastMessage);
                 Thread t = new Thread(ts);
