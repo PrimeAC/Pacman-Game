@@ -209,23 +209,31 @@ namespace Server
             moveRedGhost();
             movePinkGhost();
             moveYellowGhost();
+            Console.WriteLine("pacmans " + pacmans.Count);
             foreach (KeyValuePair<string, string> entry in moves.ToList())
             {
-                //Console.WriteLine("AAAA " + entry + " - " + entry.Key);
+                Console.WriteLine("AAAA " + entry + " - " + entry.Key + " > " + entry.Value);
                 if(pacmans[entry.Key] != null)
                 {
+                    if(pacmans[entry.Key][2] == -1)
+                    {
+                        Console.WriteLine("vou remover um pacman que perdeu");
+                        pacmans.Remove(entry.Key);  //remove pacmans that have lost
+                    }
                     //Console.WriteLine("vou enviar {0}, {1}, {2}, {3}", pacmans[entry.Key][0], pacmans[entry.Key][1], entry.Value, entry.Key);
                     movePacman(pacmans[entry.Key][0], pacmans[entry.Key][1], entry.Value, entry.Key);
                     //Console.WriteLine("recebi {0}, {1}, {2}, {3}", pacmans[entry.Key][0], pacmans[entry.Key][1], entry.Value, entry.Key);
                     if(hitWall(pacmans[entry.Key][0], pacmans[entry.Key][1], pacmansize))
                     {
                         Console.WriteLine("GAME OVER");
-                        pacmans.Remove(entry.Key);  //if lose the key is removed
+                        //pacmans.Remove(entry.Key);  //if lose the key is removed
+                        pacmans[entry.Key][2] = -1;  //means that he lost the game 
                     }
                     if(hitGhost(pacmans[entry.Key][0], pacmans[entry.Key][1]))
                     {
                         Console.WriteLine("HIT A GHOST");
-                        pacmans.Remove(entry.Key); //if lose the key is removed
+                        //pacmans.Remove(entry.Key); //if lose the key is removed
+                        pacmans[entry.Key][2] = -1;  //means that he lost the game 
                     }
                     if(hitCoin(pacmans[entry.Key][0], pacmans[entry.Key][1]))
                     {
@@ -235,6 +243,7 @@ namespace Server
                         if(coins.Count == 0)
                         {
                             Console.WriteLine("VICTORY");
+                            pacmans[entry.Key][2] = -2;  //means that he won the game
                         }
                     }
                 }
@@ -245,12 +254,17 @@ namespace Server
             {
                 foreach (IClient client in clients)
                 {
-                    //Console.WriteLine(client.getIP()+":"+client.getPort());
-                    Console.WriteLine("o servidor vai enviar " + moves.Count);
                     client.updateGameState(pacmans, ghosts, coins);
                 }
             }
+        }
 
+        public void start()
+        {
+            foreach(IClient client in clients)
+            {
+                client.initGame(pacmans);
+            }
         }
 
         public void movePacman(int x, int y,  string move, string destination)
@@ -311,6 +325,11 @@ namespace Server
                 ghosts[1][1] += 5;
             }
             //Console.WriteLine("PINK " + ghosts[1][0] + " - " + ghosts[1][1]);
+            string aux = hitPacman(ghosts[1][0], ghosts[1][1]);
+            if (aux != "")
+            {
+                pacmans[aux][2] = -1;
+            }
 
         }
 
@@ -329,6 +348,11 @@ namespace Server
             {
                 ghosts[3][0] -= 5;
             }
+            string aux = hitPacman(ghosts[3][0], ghosts[3][1]);
+            if (aux != "")
+            {
+                pacmans[aux][2] = -1;
+            }
         }
 
         public void moveYellowGhost()
@@ -345,6 +369,11 @@ namespace Server
             else
             {
                 ghosts[2][0] -= 5;
+            }
+            string aux = hitPacman(ghosts[2][0], ghosts[2][1]);
+            if (aux != "")
+            {
+                pacmans[aux][2] = -1;
             }
         }
 
@@ -376,15 +405,14 @@ namespace Server
             foreach(KeyValuePair<int, int[]> ghost in ghosts)
             {
                 //Console.WriteLine("Ghost {0}, {1}, {2}", ghost.Key, ghosts[ghost.Key][0], ghosts[ghost.Key][1]);
-                if ((ghosts[ghost.Key][0] + ghostsize) >= x && ghosts[ghost.Key][0] < (x + pacmansize))
+                if ((ghosts[ghost.Key][0] + ghostsize) > x && ghosts[ghost.Key][0] < (x + pacmansize))
                 {
-                    if ((ghosts[ghost.Key][1] + ghostsize) >= y && ghosts[ghost.Key][1] < (y + pacmansize))
+                    if ((ghosts[ghost.Key][1] + ghostsize) > y && ghosts[ghost.Key][1] < (y + pacmansize))
                     {
                         //one ghost is in the same position as the pacman
                         return true;
                     }    
                 }
-
             }
             return false;
         }
@@ -404,6 +432,25 @@ namespace Server
             }
             return false;
         }
+
+        public string hitPacman(int x, int y)
+        {
+            // Console.WriteLine("a ver se bateu em fantasmas {0} , {1}", x, y);
+            foreach (KeyValuePair<string, int[]> pacman in pacmans)
+            {
+                //Console.WriteLine("Ghost {0}, {1}, {2}", ghost.Key, ghosts[ghost.Key][0], ghosts[ghost.Key][1]);
+                if ((pacmans[pacman.Key][0] + pacmansize) > x && pacmans[pacman.Key][0] < (x + ghostsize))
+                {
+                    if ((pacmans[pacman.Key][1] + pacmansize) > y && pacmans[pacman.Key][1] < (y + ghostsize))
+                    {
+                        //one ghost is in the same position as the pacman
+                        return pacman.Key;
+                    }
+                }
+            }
+            return "";
+        }
+
     }
 
 }

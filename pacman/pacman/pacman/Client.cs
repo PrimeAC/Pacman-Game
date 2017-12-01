@@ -84,7 +84,7 @@ namespace pacman {
 
         delegate void DelAddMsg(string mensagem);
         delegate void DelUpdateGame(Dictionary<string, int[]> pacmans, Dictionary<int, int[]> ghosts, Dictionary<int, int[]> coins);
-        
+        delegate void DelInitGame(Dictionary<string, int[]> pacmans);
 
         public class ClientServices : MarshalByRefObject, IClient
         {
@@ -151,6 +151,11 @@ namespace pacman {
                 //DelUpdateGame(pacmans, ghosts, coins);
                 //form.updateGame(pacmans, ghosts, coins);
                 form.Invoke(new DelUpdateGame(form.updateGame), pacmans, ghosts, coins);
+            }
+
+            public void initGame(Dictionary<string, int[]> pacmans)
+            {
+                form.Invoke(new DelInitGame(form.initializeGame), pacmans);
             }
 
             public void MsgToClient(string mensagem)

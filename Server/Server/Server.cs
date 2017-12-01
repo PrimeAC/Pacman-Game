@@ -22,6 +22,8 @@ namespace Server
 
 
         static object _lock = new Object();
+        static object _lock1 = new Object();
+        
 
         private static System.Timers.Timer aTimer;
 
@@ -64,12 +66,23 @@ namespace Server
                 System.Console.WriteLine(client.GetHashCode());
                 client.startGame(MSEC_PER_ROUND, NUM_PLAYERS.ToString());
             }
-            Console.WriteLine("vou parar");
-            System.Threading.Thread.Sleep(1000);
+            //Console.WriteLine("vou parar");
+            //System.Threading.Thread.Sleep(1000);
 
-            Console.WriteLine("ja voltei");
+            //Console.WriteLine("ja voltei");
+            
+            while (service.ready < NUM_PLAYERS)
+            {
+                lock (_lock1)
+                {
+                    Monitor.Wait(_lock1);
+                }
+            }
+            engine.start();
+            System.Threading.Thread.Sleep(1000);
             engine.startTimer(MSEC_PER_ROUND);
             engine.seePacmans();
+            
 
             System.Console.WriteLine("Press <enter> to terminate game server...");
             System.Console.ReadLine();
@@ -78,6 +91,7 @@ namespace Server
 
         class ServerServices : MarshalByRefObject, IServer
         {
+            internal int ready = 0;
             internal ServerServices()
             {
                 clients = new List<IClient>();
@@ -98,22 +112,6 @@ namespace Server
                 engine.setPacmans(NewClientIP, NewClientPort);
                 //engine.getScore().Add(NewClientIP + ":" + NewClientPort, 0);
                 //engine.setScore(NewClientIP, NewClientPort);
-
-                
-                foreach (IClient client in clients)
-                {
-                    Console.WriteLine("cliente no servidor "+ client.getIP()+":"+client.getPort());
-                }
-                foreach (IClient client in engine.getClients())
-                {
-                    Console.WriteLine("cliente no motor " + client.getIP() + ":" + client.getPort());
-                }
-
-
-                if (clients.Equals(engine.getClients()))
-                {
-                    Console.WriteLine("sao iguais");
-                }
 
                 lock (_lock)
                 {
@@ -149,6 +147,18 @@ namespace Server
                 //    }
                 //}
                 //engine.getMoves().Clear();
+            }
+
+            public void readyClient()
+            {
+                ready++;
+                if(ready == NUM_PLAYERS)
+                {
+                    lock (_lock1)
+                    {
+                        Monitor.Pulse(_lock1);
+                    }
+                }
             }
         }
     }

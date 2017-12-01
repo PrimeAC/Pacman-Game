@@ -15,14 +15,11 @@ using System.Runtime.Remoting.Channels;
 using RemoteServices;
 using System.Net;
 using static pacman.Client;
-
+using System.Resources;
 
 namespace pacman {
     public partial class Form1 : Form {
-
-        //static object _lockclient = new Object();
-        //bool start = false;
-
+        
         // direction player is moving in. Only one will be true
         bool goup;
         bool godown;
@@ -46,6 +43,10 @@ namespace pacman {
         int ghost3x = 5;
         int ghost3y = 5;
 
+        private System.Windows.Forms.PictureBox[] array;
+        private int cnt = 0;
+        private int removecoin = 1;  //if equals 1 remove the coin from controls
+        private int id;  //saves the position of the client in the pacmans list
 
         int port;
         string ip;
@@ -59,20 +60,25 @@ namespace pacman {
         IClient client2;
 
         public Form1(string gameRate, string numPlayers, IServer server, string ip, int port, IClient client1) {
-
-            Console.WriteLine("criar um form");
+            
             ClientServices.form = this;
             this.ip = ip;
             this.port = port;
             this.server = server;
             this.client2 = client1;
-
+            this.array = new PictureBox[Int32.Parse(numPlayers)];
+            cnt = 0;
             foreach (IClient client in server.getClients())
             {
-                if(!client.getPort().Equals(port.ToString()))
+                if(!client.getPort().Equals(port.ToString()) && !client.getIP().Equals(ip))
                 {
-                    clients.Add(client.getPort());
+                    clients.Add(client.getIP() + ":" + client.getPort());
                 }
+                else
+                {
+                    this.id = cnt;
+                }
+                cnt++;
             }
             
 
@@ -82,19 +88,12 @@ namespace pacman {
             //playersInit(Int32.Parse(numPlayers));
 
             List<string> messages = client2.getMessages();
-            Console.WriteLine("numero de mensagens: " + messages.Count);
             foreach (object o in messages)
             {
                 AddMsg((string)o);
             }
 
-            //while(!start)
-            //{
-            //    lock (_lockclient)
-            //    {
-            //        Monitor.Wait(_lockclient);
-            //    }
-            //}
+            server.readyClient();
             
         }
 
@@ -132,22 +131,26 @@ namespace pacman {
         //    }
         //}
 
-        private void keyisdown(object sender, KeyEventArgs e) {
+        private void keyisdown(object sender, KeyEventArgs e) { 
             if (e.KeyCode == Keys.Left) {
                 goleft = true;
-                pacman.Image = Properties.Resources.Left;
+                //pacman.Image = Properties.Resources.Left;
+                array[id].Image = Properties.Resources.Left;
             }
             if (e.KeyCode == Keys.Right) {
                 goright = true;
-                pacman.Image = Properties.Resources.Right;
+                //pacman.Image = Properties.Resources.Right;
+                array[id].Image = Properties.Resources.Right;
             }
             if (e.KeyCode == Keys.Up) {
                 goup = true;
-                pacman.Image = Properties.Resources.Up;
+                //pacman.Image = Properties.Resources.Up;
+                array[id].Image = Properties.Resources.Up;
             }
             if (e.KeyCode == Keys.Down) {
                 godown = true;
-                pacman.Image = Properties.Resources.down;
+                //pacman.Image = Properties.Resources.down;
+                array[id].Image = Properties.Resources.down;
             }
             if (e.KeyCode == Keys.Enter) {
                     tbMsg.Enabled = true; tbMsg.Focus();
@@ -191,14 +194,53 @@ namespace pacman {
             }
 
             //move pacmans
-            foreach(KeyValuePair<string, int[]> pacman in pacmans)
+            cnt = 0;
+            foreach (KeyValuePair<string, int[]> pacman in pacmans)
             {
                 if (pacman.Key.Equals(ip + ":" + port))
                 {
-                    Console.WriteLine("sou eu");
-                    label1.Text = "Score: " + pacmans[pacman.Key][2];
+                    Console.WriteLine("sou eu " + pacman.Value[2]);
+                    if(pacman.Value[2] == -1)
+                    {
+                        label2.Text = "GAME OVER";
+                        label2.Visible = true;
+                        timer1.Stop();
+                    }
+                    else if(pacman.Value[2] == -2)
+                    {
+                        label2.Text = "GAME WON!";
+                        label2.Visible = true;
+                        timer1.Stop();
+                    }
+                    else
+                    {
+                        label1.Text = "Score: " + pacmans[pacman.Key][2];
+                    }
                 }
-                this.pacman.Location = new System.Drawing.Point(pacmans[pacman.Key][0], pacmans[pacman.Key][1]);
+                array[cnt++].Location = new System.Drawing.Point(pacmans[pacman.Key][0], pacmans[pacman.Key][1]);
+                foreach (Control x in this.Controls)
+                {
+                    if (x is PictureBox && x.Tag == "coin")
+                    {
+                        removecoin = 1;
+                        foreach(KeyValuePair<int, int[]> coin in coins)
+                        {
+                            if (x.Location == new Point(coin.Value[0], coin.Value[1]))
+                            {
+                                Console.WriteLine("encontrei uma location existente");
+                                removecoin = 0;  //means that don't need to remove this coin
+                            }
+                        }
+                        if(removecoin == 1)
+                        {
+                            //means that th coin doesn't exist anymore in the coins dictionary
+                            //so it has to be removed
+                            this.Controls.Remove(x);
+                            Console.WriteLine("a remover moeda");
+
+                        }
+                    }
+                }
             }
 
             //if (mov.Equals("left"))
@@ -222,20 +264,27 @@ namespace pacman {
 
         }
 
-        //public void initializeGame(string gameRate, string numPlayers)
-        //{
-        //    start = true;
-        //    this.timer1.Interval = Int32.Parse(gameRate);
-        //    lock (_lockclient)
-        //    {
-        //        Monitor.Pulse(_lockclient);
-        //    }
-        //}
+        public void initializeGame(Dictionary<string, int[]> pacmans)
+        {
+            cnt = 0;
+            foreach (KeyValuePair<string,int[]> pacman in pacmans)
+            {
+                array[cnt] = new PictureBox {
+                    BackColor = System.Drawing.Color.Transparent,
+                    Location = new System.Drawing.Point(pacmans[pacman.Key][0], pacmans[pacman.Key][1]),
+                    Name = pacman.Key,  //creates a pacman with its ip:port as name
+                    Size = new System.Drawing.Size(25, 25),
+                    SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage,
+                    Image = global::pacman.Properties.Resources.Left,
+                    Tag = "pacman"
+                };
+                this.Controls.Add(array[cnt++]);
+            }
+        }
 
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            Console.WriteLine("vou enviar");
             if (goleft)
             {
                 server.sendMove(ip, port.ToString(), "left");
