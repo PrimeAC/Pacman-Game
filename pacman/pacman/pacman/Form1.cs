@@ -172,6 +172,7 @@ namespace pacman {
         //problema de quando jogar com 2 ou mais jogadores ele faz um movimento sempre na mesma direçao
         public void updateGame(Dictionary<string, int[]> pacmans, Dictionary<int, int[]> ghosts, Dictionary<int, int[]> coins)
         {
+            //move ghosts
             foreach(KeyValuePair<int, int[]> ghost in ghosts)
             {
                 if (ghost.Key == 1)
@@ -187,6 +188,17 @@ namespace pacman {
                 {
                     this.redGhost.Location = new System.Drawing.Point(ghosts[ghost.Key][0], ghosts[ghost.Key][1]);
                 }
+            }
+
+            //move pacmans
+            foreach(KeyValuePair<string, int[]> pacman in pacmans)
+            {
+                if (pacman.Key.Equals(ip + ":" + port))
+                {
+                    Console.WriteLine("sou eu");
+                    label1.Text = "Score: " + pacmans[pacman.Key][2];
+                }
+                this.pacman.Location = new System.Drawing.Point(pacmans[pacman.Key][0], pacmans[pacman.Key][1]);
             }
 
             //if (mov.Equals("left"))
@@ -207,7 +219,7 @@ namespace pacman {
             //    godown = true;
             //}
 
-            
+
         }
 
         //public void initializeGame(string gameRate, string numPlayers)
@@ -223,6 +235,7 @@ namespace pacman {
 
         private void timer1_Tick(object sender, EventArgs e)
         {
+            Console.WriteLine("vou enviar");
             if (goleft)
             {
                 server.sendMove(ip, port.ToString(), "left");

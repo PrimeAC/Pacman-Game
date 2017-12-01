@@ -140,7 +140,11 @@ namespace Server
 
         public void setMoves(string ip, string port, string move)
         {
-            moves.Add(ip + ":" + port, move);
+            if (!moves.ContainsKey(ip + ":" + port))   //key does not exist
+            {
+                moves.Add(ip + ":" + port, move);
+            }
+            
         }
 
         //public Dictionary<string, int> getScore()
@@ -208,7 +212,7 @@ namespace Server
             foreach (KeyValuePair<string, string> entry in moves.ToList())
             {
                 //Console.WriteLine("AAAA " + entry + " - " + entry.Key);
-                if (pacmans[entry.Key] != null)
+                if(pacmans[entry.Key] != null)
                 {
                     //Console.WriteLine("vou enviar {0}, {1}, {2}, {3}", pacmans[entry.Key][0], pacmans[entry.Key][1], entry.Value, entry.Key);
                     movePacman(pacmans[entry.Key][0], pacmans[entry.Key][1], entry.Value, entry.Key);
@@ -223,7 +227,7 @@ namespace Server
                         Console.WriteLine("HIT A GHOST");
                         pacmans.Remove(entry.Key); //if lose the key is removed
                     }
-                    if (hitCoin(pacmans[entry.Key][0], pacmans[entry.Key][1]))
+                    if(hitCoin(pacmans[entry.Key][0], pacmans[entry.Key][1]))
                     {
                         //seeScore();
                         pacmans[entry.Key][2] += 1;
@@ -236,16 +240,16 @@ namespace Server
                 }
             }
 
+            moves.Clear();
             if (clients.Count > 0)
             {
                 foreach (IClient client in clients)
                 {
                     //Console.WriteLine(client.getIP()+":"+client.getPort());
+                    Console.WriteLine("o servidor vai enviar " + moves.Count);
                     client.updateGameState(pacmans, ghosts, coins);
                 }
             }
-
-            moves.Clear();
 
         }
 
@@ -389,7 +393,7 @@ namespace Server
         {
             foreach(KeyValuePair<int, int[]> coin in coins)
             {
-                if(coins[coin.Key][0] == x && coins[coin.Key][1] == y)
+                if(coins[coin.Key][0] < (x + pacmansize) && (coins[coin.Key][0] + coinsize) > x && coins[coin.Key][1] < (y + pacmansize) && (coins[coin.Key][1] + coinsize) > y)
                 {
                     //Console.WriteLine("MOEDAS " + coins[coin.Key]);
                     coins.Remove(coin.Key);

@@ -147,7 +147,6 @@ namespace pacman {
 
             public void updateGameState(Dictionary<string, int[]> pacmans, Dictionary<int, int[]> ghosts, Dictionary<int, int[]> coins)
             {
-                Console.WriteLine("entrei");
                 //DelUpdateGame DelUpdateGame = new DelUpdateGame(form.updateGame);
                 //DelUpdateGame(pacmans, ghosts, coins);
                 //form.updateGame(pacmans, ghosts, coins);
