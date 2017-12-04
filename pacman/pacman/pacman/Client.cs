@@ -82,7 +82,7 @@ namespace pacman {
             throw new Exception("No network adapters with an IPv4 address in the system!");
         }
 
-        delegate void DelAddMsg(string mensagem);
+        delegate void DelAddMsg(string mensagem, int[] vector);
         delegate void DelUpdateGame(Dictionary<string, int[]> pacmans, Dictionary<int, int[]> ghosts, Dictionary<int, int[]> coins);
         delegate void DelInitGame(Dictionary<string, int[]> pacmans);
 
@@ -158,20 +158,26 @@ namespace pacman {
                 form.Invoke(new DelInitGame(form.initializeGame), pacmans);
             }
 
-            public void MsgToClient(string mensagem)
+            public void fail(string s)
             {
-                // thread-safe access to form
-                form.Invoke(new DelAddMsg(form.AddMsg), mensagem);
+                Console.WriteLine(s);
             }
 
-            public void SendMsg(string mensagem)
+            public void MsgToClient(string mensagem, int[] vector)
+            {
+                // thread-safe access to form
+                form.Invoke(new DelAddMsg(form.AddMsg), mensagem, vector);
+            }
+
+            public void SendMsg(string mensagem, int[] vector)
             {
                 messages.Add(mensagem);
-                ThreadStart ts = new ThreadStart(this.BroadcastMessage);
-                Thread t = new Thread(ts);
+                //ThreadStart ts = new ThreadStart(this.BroadcastMessage);
+                //Thread t = new Thread(ts);
+                Thread t = new Thread(() => BroadcastMessage(vector));
                 t.Start();
             }
-            public void BroadcastMessage()
+            public void BroadcastMessage(int[] vector)
             {
                 string MsgToBcast;
                 clients = form.getServer().getClients();
@@ -183,7 +189,7 @@ namespace pacman {
                 {
                     try
                     {
-                        ((IClient)clients[i]).MsgToClient(MsgToBcast);
+                        ((IClient)clients[i]).MsgToClient(MsgToBcast, vector);
                     }
                     catch (Exception e)
                     {

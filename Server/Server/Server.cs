@@ -19,6 +19,8 @@ namespace Server
         private static int NUM_PLAYERS;
         public static List<IClient> clients;
         public static GameEngine engine;
+        private static bool gamestarted = false;
+        private static bool gamesettings = false;  //game settings is true when the game rate and the num of players is known
 
 
         static object _lock = new Object();
@@ -45,10 +47,15 @@ namespace Server
 
             System.Console.WriteLine("Please enter the desired game rate:");
             MSEC_PER_ROUND = System.Console.ReadLine();
+            if (MSEC_PER_ROUND == "")
+            {
+                MSEC_PER_ROUND = "20";
+            }
 
             System.Console.WriteLine("Please enter the number of players:");
             NUM_PLAYERS = Int32.Parse(System.Console.ReadLine());
 
+            gamesettings = true;
 
             Console.WriteLine("Clients number -> " + clients.Count);
 
@@ -66,10 +73,6 @@ namespace Server
                 System.Console.WriteLine(client.GetHashCode());
                 client.startGame(MSEC_PER_ROUND, NUM_PLAYERS.ToString());
             }
-            //Console.WriteLine("vou parar");
-            //System.Threading.Thread.Sleep(1000);
-
-            //Console.WriteLine("ja voltei");
             
             while (service.ready < NUM_PLAYERS)
             {
@@ -78,6 +81,7 @@ namespace Server
                     Monitor.Wait(_lock1);
                 }
             }
+            gamestarted = true;   //indicates that a game as started
             engine.start();
             System.Threading.Thread.Sleep(1000);
             engine.startTimer(MSEC_PER_ROUND);
@@ -88,6 +92,7 @@ namespace Server
             System.Console.ReadLine();
         }
 
+        delegate void DelSendMoves(string ip, string port, string move);
 
         class ServerServices : MarshalByRefObject, IServer
         {
@@ -101,22 +106,31 @@ namespace Server
 
             public void RegisterClient(string NewClientIP, string NewClientPort)
             {
-                Console.WriteLine("New client listening at " + "tcp://" + NewClientIP + ":" + NewClientPort + "/Client");
-                IClient newClient =
-                    (IClient)Activator.GetObject(
-                           typeof(IClient), "tcp://" + NewClientIP + ":" + NewClientPort + "/Client");
-                newClient.setPort(NewClientPort);
-                newClient.setIP(NewClientIP);
-                clients.Add(newClient);
-                //engine.getPacmans().Add(NewClientIP + ":" + NewClientPort, new string[] { "8", engine.calculatePacmanPosY() });
-                engine.setPacmans(NewClientIP, NewClientPort);
-                //engine.getScore().Add(NewClientIP + ":" + NewClientPort, 0);
-                //engine.setScore(NewClientIP, NewClientPort);
-
-                lock (_lock)
+                if(gamestarted == false && gamesettings == true)  
                 {
-                    Monitor.Pulse(_lock);
+                    Console.WriteLine("New client listening at " + "tcp://" + NewClientIP + ":" + NewClientPort + "/Client");
+                    IClient newClient =
+                        (IClient)Activator.GetObject(
+                               typeof(IClient), "tcp://" + NewClientIP + ":" + NewClientPort + "/Client");
+                    newClient.setPort(NewClientPort);
+                    newClient.setIP(NewClientIP);
+                    clients.Add(newClient);
+                    engine.setPacmans(NewClientIP, NewClientPort);
+                    engine.seePacmans();
+
+                    lock (_lock)
+                    {
+                        Monitor.Pulse(_lock);
+                    }
                 }
+                else
+                {
+                    IClient newClient =
+                        (IClient)Activator.GetObject(
+                               typeof(IClient), "tcp://" + NewClientIP + ":" + NewClientPort + "/Client");
+                    newClient.fail("Game already started.");
+                }
+                
             }
 
             public List<IClient> getClients()
@@ -126,27 +140,9 @@ namespace Server
 
             public void sendMove(string ip, string port, string move)
             {
-                //engine.getMoves().Add(ip+ ":" +port, move);
-                engine.setMoves(ip, port, move);
-                //engine.update();
-
-
-                //foreach (KeyValuePair<string, string> kvp in moves)
-                //{
-                //    //textBox3.Text += ("Key = {0}, Value = {1}", kvp.Key, kvp.Value);
-                //    Console.WriteLine("Key = {0}, Value = {1}", kvp.Key, kvp.Value);
-                //}
-
-                //Console.WriteLine("timer");
-
-                //foreach (KeyValuePair<string, string> entry in engine.getMoves().ToList())
-                //{
-                //    foreach (IClient client in clients)
-                //    {
-                //        client.updateGameState(engine.getPacmans(), engine.getGhosts(), engine.getCoins());
-                //    }
-                //}
-                //engine.getMoves().Clear();
+                //engine.setMoves(ip, port, move);
+                DelSendMoves delSendMoves = new DelSendMoves(engine.setMoves);
+                delSendMoves(ip, port, move);
             }
 
             public void readyClient()

@@ -46,7 +46,7 @@ namespace pacman {
         private System.Windows.Forms.PictureBox[] array;
         private int cnt = 0;
         private int removecoin = 1;  //if equals 1 remove the coin from controls
-        private int id;  //saves the position of the client in the pacmans list
+        private int id = 0;  //saves the position of the client in the pacmans list
 
         int port;
         string ip;
@@ -54,7 +54,10 @@ namespace pacman {
         delegate void AddMessage(string message);
 
 
-        List<string> clients = new List<string>();
+        private int[] vector;   //list used to assure causal order in the messages
+
+        //saves all messages that are waiting to be displayed
+        private Dictionary<int[], string> onHold = new Dictionary<int[], string>();
 
         IServer server;
         IClient client2;
@@ -67,69 +70,58 @@ namespace pacman {
             this.server = server;
             this.client2 = client1;
             this.array = new PictureBox[Int32.Parse(numPlayers)];
+            this.vector = new int[Int32.Parse(numPlayers)];
             cnt = 0;
             foreach (IClient client in server.getClients())
             {
-                if(!client.getPort().Equals(port.ToString()) && !client.getIP().Equals(ip))
-                {
-                    clients.Add(client.getIP() + ":" + client.getPort());
-                }
-                else
+                if (client.getPort().Equals(port.ToString()) && client.getIP().Equals(ip))
                 {
                     this.id = cnt;
                 }
+                vector[cnt] = 0;    //initializes the list with all positions equal to zero
                 cnt++;
             }
-            
+
+            //to simulate that a message 2 arrives first that a message 1
+            //only works for two clients
+            //if there were three the aux should have 3 fields
+            //int[] aux = { 1, 2 };
+            //onHold.Add(aux, "1111: teste");
+            //Console.WriteLine("on hold {0}, {1}, mensagem {2}", aux[0], aux[1], onHold[aux]);
+            //int[] aux1 = { 1, 3 };
+            //onHold.Add(aux1, "1111: teste recursivo");
+            //Console.WriteLine("on hold {0}, {1}, mensagem {2}", aux1[0], aux1[1], onHold[aux1]);
+            //int[] aux2 = { 3, 4 };
+            //onHold.Add(aux2, "1111: teste entre espaços");
+            //Console.WriteLine("on hold {0}, {1}, mensagem {2}", aux2[0], aux2[1], onHold[aux2]);
+
+            //to simulate that a message 2 arrives first that a message 1
+            //only works for three clients
+            //int[] aux = { 1, 2, 1 };
+            //onHold.Add(aux, "1111: teste");
+            //Console.WriteLine("on hold {0}, {1}, mensagem {2}", aux[0], aux[1], onHold[aux]);
+            //int[] aux1 = { 1, 3 , 1};
+            //onHold.Add(aux1, "1111: teste recursivo");
+            //Console.WriteLine("on hold {0}, {1}, mensagem {2}", aux1[0], aux1[1], onHold[aux1]);
+            //int[] aux2 = { 3, 4, 2 };
+            //onHold.Add(aux2, "1111: teste entre espaços");
+            //Console.WriteLine("on hold {0}, {1}, mensagem {2}", aux2[0], aux2[1], onHold[aux2]);
+
+
 
             InitializeComponent();
             label2.Visible = false;
             this.timer1.Interval = Int32.Parse(gameRate);
-            //playersInit(Int32.Parse(numPlayers));
 
             List<string> messages = client2.getMessages();
             foreach (object o in messages)
             {
-                AddMsg((string)o);
+                AddMsg((string)o, vector);
             }
 
             server.readyClient();
             
         }
-
-        //private void playersInit(int numPlayers)
-        //{
-        //    if (numPlayers == 1)
-        //    {
-        //        this.pacman2.Visible = false;
-        //        this.pacman3.Enabled = false;
-        //        this.pacman4.Enabled = false;
-        //        this.pacman5.Enabled = false;
-        //       this.pacman6.Enabled = false;
-        //    }
-        //    else if (numPlayers <= 2)
-        //    {
-        //        this.pacman3.Enabled = false;
-        //        this.pacman4.Enabled = false;
-        //        this.pacman5.Enabled = false;
-        //        this.pacman6.Enabled = false;
-        //    }
-        //    else if (numPlayers <= 3)
-        //    {
-        //        this.pacman4.Enabled = false;
-        //        this.pacman5.Enabled = false;
-        //        this.pacman6.Enabled = false;
-        //    }
-        //    else if (numPlayers <= 4)
-        //    {
-        //        this.pacman5.Enabled = false;
-        //        this.pacman6.Enabled = false;
-        //    }
-        //    else if (numPlayers <= 5)
-        //    {
-        //        this.pacman6.Enabled = false;
-        //    }
-        //}
 
         private void keyisdown(object sender, KeyEventArgs e) { 
             if (e.KeyCode == Keys.Left) {
@@ -175,6 +167,10 @@ namespace pacman {
         //problema de quando jogar com 2 ou mais jogadores ele faz um movimento sempre na mesma direçao
         public void updateGame(Dictionary<string, int[]> pacmans, Dictionary<int, int[]> ghosts, Dictionary<int, int[]> coins)
         {
+            //foreach(KeyValuePair<string, int[]> pacman in pacmans)
+            //{
+            //    Console.WriteLine("value 1: {0}, value 2: {1}, value 3: {2}", pacmans[pacman.Key][0], pacmans[pacman.Key][1], pacmans[pacman.Key][2]);
+            //}
             //move ghosts
             foreach(KeyValuePair<int, int[]> ghost in ghosts)
             {
@@ -199,7 +195,6 @@ namespace pacman {
             {
                 if (pacman.Key.Equals(ip + ":" + port))
                 {
-                    Console.WriteLine("sou eu " + pacman.Value[2]);
                     if(pacman.Value[2] == -1)
                     {
                         label2.Text = "GAME OVER";
@@ -227,7 +222,6 @@ namespace pacman {
                         {
                             if (x.Location == new Point(coin.Value[0], coin.Value[1]))
                             {
-                                Console.WriteLine("encontrei uma location existente");
                                 removecoin = 0;  //means that don't need to remove this coin
                             }
                         }
@@ -236,32 +230,10 @@ namespace pacman {
                             //means that th coin doesn't exist anymore in the coins dictionary
                             //so it has to be removed
                             this.Controls.Remove(x);
-                            Console.WriteLine("a remover moeda");
-
                         }
                     }
                 }
             }
-
-            //if (mov.Equals("left"))
-            //{
-            //    goleft = true;
-            //}
-
-            //if (mov.Equals("right"))
-            //{
-            //    goright = true;
-            //}
-            //if (mov.Equals("up"))
-            //{
-            //    goup = true;
-            //}
-            //if (mov.Equals("down"))
-            //{
-            //    godown = true;
-            //}
-
-
         }
 
         public void initializeGame(Dictionary<string, int[]> pacmans)
@@ -485,7 +457,11 @@ namespace pacman {
         {
             if (e.KeyCode == Keys.Enter)
             {
-                client2.SendMsg(port + ": " + tbMsg.Text);
+                vector[id] += 1;
+               
+                Console.WriteLine("vector: [{0}, {1}]", vector[0], vector[1]);
+
+                client2.SendMsg(port + ": " + tbMsg.Text, vector);
                 tbMsg.Clear();
                 tbMsg.Enabled = false;
                 this.Focus();
@@ -493,10 +469,136 @@ namespace pacman {
         }
 
 
-        public void AddMsg(string s)
+        public void AddMsg(string s, int[] vetor)
         {
-            this.tbChat.AppendText("\r\n" + s);
+            int flag = 0;     //if flag < (vector.count - 1) means that one or more messages are missing
+            Console.WriteLine("RECEBI [{0}, {1}, {2}]", vetor[0], vetor[1], vetor[2]);
+            Console.WriteLine("TENHO [{0}, {1}, {2}]", this.vector[0], this.vector[1], this.vector[2]);
+            for(int i = 0; i < this.vector.Length; i++)
+            {
+                if(this.vector[i] == vetor[i])
+                {
+                    flag++;
+                }
+            }
+            if(flag >= this.vector.Length - 1)
+            {
+                //means that it's receiving a valid message
+                this.tbChat.AppendText("\r\n" + s);
+                this.vector = vetor;
+                Console.WriteLine("vetor alterado [{0}, {1}]", this.vector[0], this.vector[1]);
+                isWaitting();  //check if there are any messages waitting dependent on this
+            }
+            else
+            {
+                onHold.Add(vetor, s); 
+            }  
         }
+
+        public void isWaitting()
+        {
+            int counter = 0; //if counter != vector.len - 1 means that the message is still deppendent on other
+            int j = 0;
+            bool found = false;
+            int[] aux = new int[vector.Length];
+            int[] aux1 = new int[vector.Length];
+            string temp = "";
+            foreach (KeyValuePair<int[], string> pair in onHold)
+            {
+                Console.WriteLine("pair: {0}, pair[0] {1}, pair[1] {2}, pair[2] {3}", pair.Key, pair.Key[0], pair.Key[1], pair.Key[2]);
+                //if(((pair.Key[0] == this.vector[0] + 1) && (pair.Key[1] == this.vector[1])) || ((pair.Key[0] == this.vector[0]) && (pair.Key[1] == this.vector[1] + 1)))
+                //{   //means that exists one message waiting to be written
+                //    Console.WriteLine("entrei ");
+                //    this.vector[0] = pair.Key[0];
+                //    this.vector[1] = pair.Key[1];
+                //    aux = vector;
+                //    aux1 = pair.Key;
+                //    temp = onHold[pair.Key];
+                //    break;
+                //}
+
+                counter = 0;
+                if (vector.Length == 2)
+                {
+                    Console.WriteLine("entrei no comprimento dois");
+                    for (int i = 0; i < vector.Length; i++)
+                    {
+                        if (pair.Key[i] > vector[i] + 1)
+                        {
+                            break;
+                        }
+                        else if(pair.Key[i] < vector[i] + 1)
+                        {
+                            counter++;
+                            j = i;
+                            Console.WriteLine("counter " + counter);
+                        }
+                    }
+                    if (counter == 1)
+                    {
+                        Console.WriteLine("entrei " + pair.Key[j]);
+                        vector = pair.Key;
+                        aux = vector;
+                        aux1 = pair.Key;
+                        temp = onHold[pair.Key];
+                        found = true;
+                        break;
+                    }
+                }
+                else if (vector.Length > 2)
+                {
+                    Console.WriteLine("entrei no comprimento tres");
+                    for (int i = 0; i < vector.Length; i++)
+                    {
+                        Console.WriteLine("comparaçao " + pair.Key[i] + " < " + (vector[i] + 1));
+                        if (pair.Key[i] > vector[i] + 1)
+                        {
+                            //found = true;
+                            break;
+                        }
+                        else if (pair.Key[i] <= vector[i])
+                        {
+                            counter++;
+                            //j = i;
+                            Console.WriteLine("counter " + counter);
+                            //vector[i] = pair.Key[i];
+                            //aux = vector;
+                            //aux1 = pair.Key;
+                            //temp = onHold[pair.Key];
+                            //found = true;
+                            //break;
+                        }
+                        else
+                        {
+                            j = i;
+                        }
+                    }
+                    if (counter == vector.Length - 1)
+                    {
+                        Console.WriteLine("entrei " + pair.Key[j]);
+                        vector = pair.Key;
+                        aux = vector;
+                        aux1 = pair.Key;
+                        temp = onHold[pair.Key];
+                        found = true;
+                        break;
+                    }
+
+                }
+                
+                //if (found)
+                //{
+                //    break;
+                //}
+            }
+            if (aux == vector)
+            {
+                Console.WriteLine("ESTE " + onHold[aux1] + " -- " + temp + "  " + vector[0]+"," + vector[1] + "," + vector[2]);
+                onHold.Remove(aux1);
+                AddMsg(temp, vector);
+            }
+        }
+
 
         public IServer getServer()
         {

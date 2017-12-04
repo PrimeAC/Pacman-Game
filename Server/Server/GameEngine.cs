@@ -23,7 +23,8 @@ namespace Server
         //saves all pacmans ip:port, score
         //public static Dictionary<string, int> score = new Dictionary<string, int>();
 
-        private int number = 0;
+        private int numberx = 1;
+        private int numbery = 0;
         private int width = 328;
         private int heigth = 320;
         private int pacmansize = 25;
@@ -41,6 +42,7 @@ namespace Server
         private int wall3 = 128;
         private int wall4 = 288;
 
+        private int cnt2 = 0;   //used to simulate when the server doen't send the update regularly to every clients
 
         private Timer timer;
 
@@ -120,7 +122,8 @@ namespace Server
 
         public void setPacmans(string ip, string port)
         {
-            pacmans.Add(ip + ":" + port, new int[] { 8, calculatePacmanPosY(), 0 });
+            int[] aux = calculatePacmanPos();
+            pacmans.Add(ip + ":" + port, new int[] { aux[0], aux[1], 0 });
         }
 
         public Dictionary<int, int[]> getCoins()
@@ -162,7 +165,7 @@ namespace Server
             foreach (KeyValuePair<string, int[]> kvp in pacmans)
             {
                 //textBox3.Text += ("Key = {0}, Value = {1}", kvp.Key, kvp.Value);
-                Console.WriteLine("Key = {0}, Value 0 = {1}, Value 1 = {2}", kvp.Key, kvp.Value[0], kvp.Value[1]);
+                Console.WriteLine("Key = {0}, Value 0 = {1}, Value 1 = {2}, Value 2 = {3}", kvp.Key, kvp.Value[0], kvp.Value[1], kvp.Value[2]);
             }
         }
 
@@ -198,28 +201,32 @@ namespace Server
             }
         }
 
-        public int calculatePacmanPosY()
+        public int[] calculatePacmanPos()
         {
-            number++;
-            return (number*40);
+            int[] aux = new int[2];
+            numbery++;
+            if(numbery > 8)
+            {
+                numberx++;
+                numbery = 1;
+            }
+            aux[0] = numberx * 8;
+            aux[1] = numbery * 40;
+            return aux;
         }
 
         public void update(object sender, ElapsedEventArgs elapsedEventArg)
         {
+            string id = "";
             moveRedGhost();
             movePinkGhost();
             moveYellowGhost();
             Console.WriteLine("pacmans " + pacmans.Count);
             foreach (KeyValuePair<string, string> entry in moves.ToList())
             {
-                Console.WriteLine("AAAA " + entry + " - " + entry.Key + " > " + entry.Value);
-                if(pacmans[entry.Key] != null)
+                //if(pacmans[entry.Key] != null)
+                if(pacmans.ContainsKey(entry.Key))
                 {
-                    if(pacmans[entry.Key][2] == -1)
-                    {
-                        Console.WriteLine("vou remover um pacman que perdeu");
-                        pacmans.Remove(entry.Key);  //remove pacmans that have lost
-                    }
                     //Console.WriteLine("vou enviar {0}, {1}, {2}, {3}", pacmans[entry.Key][0], pacmans[entry.Key][1], entry.Value, entry.Key);
                     movePacman(pacmans[entry.Key][0], pacmans[entry.Key][1], entry.Value, entry.Key);
                     //Console.WriteLine("recebi {0}, {1}, {2}, {3}", pacmans[entry.Key][0], pacmans[entry.Key][1], entry.Value, entry.Key);
@@ -228,12 +235,14 @@ namespace Server
                         Console.WriteLine("GAME OVER");
                         //pacmans.Remove(entry.Key);  //if lose the key is removed
                         pacmans[entry.Key][2] = -1;  //means that he lost the game 
+                        id = entry.Key;
                     }
                     if(hitGhost(pacmans[entry.Key][0], pacmans[entry.Key][1]))
                     {
                         Console.WriteLine("HIT A GHOST");
                         //pacmans.Remove(entry.Key); //if lose the key is removed
                         pacmans[entry.Key][2] = -1;  //means that he lost the game 
+                        id = entry.Key;
                     }
                     if(hitCoin(pacmans[entry.Key][0], pacmans[entry.Key][1]))
                     {
@@ -254,8 +263,32 @@ namespace Server
             {
                 foreach (IClient client in clients)
                 {
-                    client.updateGameState(pacmans, ghosts, coins);
+                    client.updateGameState(pacmans, ghosts, coins);  
                 }
+                //to test the case where the server don´t send the update to all the clients
+                //shows that no information is lost when one update is recieved in the client
+                //int cnt1 = 0;
+                //foreach (IClient client in clients)
+                //{
+                //    Console.WriteLine("cnt1 {0}, cnt2 {1}", cnt1, cnt2);
+                //    if (cnt1 != 1)
+                //    {
+                //        client.updateGameState(pacmans, ghosts, coins);
+                //    }
+                //    if(cnt2 == 50)
+                //    {
+                //        cnt1 = -1;
+                //        cnt2 = 0;
+                //    }
+
+                //    cnt1++;
+                //    cnt2++;
+                //}
+                }
+            if (id != "")
+            {
+                //means that a pacman lost during this round and will be removed from the pacmans 
+                pacmans.Remove(id);
             }
         }
 
@@ -298,11 +331,6 @@ namespace Server
             {
                 pinkx = -pinkx;
             }
-            //if (ghosts[1][0] <= (128 + wallWidth) || ghosts[1][0] >= 328)
-            //{
-            //    //hit the wall and has to go back
-            //    pinkx = -pinkx;
-            //}
             if (pinkx == 1)
             {
                 ghosts[1][0] += 5;  //5 it is the ghosts speed

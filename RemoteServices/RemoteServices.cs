@@ -26,9 +26,10 @@ namespace RemoteServices
         string getNumPlayers();
         void updateGameState(Dictionary<string, int[]> pacmans, Dictionary<int, int[]> ghosts, Dictionary<int, int[]> coins);
         void initGame(Dictionary<string, int[]> pacmans);
-        void MsgToClient(string message);
-        void SendMsg(string message);
-        void BroadcastMessage();
+        void fail(string s);
+        void MsgToClient(string message, int[] vector);
+        void SendMsg(string message, int[] vector);
+        void BroadcastMessage(int[] vector);
         List<string> getMessages();
     }
 }
