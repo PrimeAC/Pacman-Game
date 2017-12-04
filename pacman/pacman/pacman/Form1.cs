@@ -167,10 +167,6 @@ namespace pacman {
         //problema de quando jogar com 2 ou mais jogadores ele faz um movimento sempre na mesma direçao
         public void updateGame(Dictionary<string, int[]> pacmans, Dictionary<int, int[]> ghosts, Dictionary<int, int[]> coins)
         {
-            //foreach(KeyValuePair<string, int[]> pacman in pacmans)
-            //{
-            //    Console.WriteLine("value 1: {0}, value 2: {1}, value 3: {2}", pacmans[pacman.Key][0], pacmans[pacman.Key][1], pacmans[pacman.Key][2]);
-            //}
             //move ghosts
             foreach(KeyValuePair<int, int[]> ghost in ghosts)
             {
@@ -209,7 +205,7 @@ namespace pacman {
                     }
                     else
                     {
-                        label1.Text = "Score: " + pacmans[pacman.Key][2];
+                        label1.Text = "Score"+ id +": " + pacmans[pacman.Key][2];
                     }
                 }
                 array[cnt++].Location = new System.Drawing.Point(pacmans[pacman.Key][0], pacmans[pacman.Key][1]);
@@ -273,186 +269,9 @@ namespace pacman {
             {
                 server.sendMove(ip, port.ToString(), "down");
             }
-
-            //move player
-            //if (goleft)
-            //{
-            //    if (pacman.Left > (boardLeft))
-            //        pacman.Left -= speed;
-            //}
-            //if (goright)
-            //{
-            //    if (pacman.Left < (boardRight))
-            //        pacman.Left += speed;
-            //}
-            //if (goup)
-            //{
-            //    if (pacman.Top > (boardTop))
-            //        pacman.Top -= speed;
-            //}
-            //if (godown)
-            //{
-            //    if (pacman.Top < (boardBottom))
-            //        pacman.Top += speed;
-
-            //    godown = false;
-            //}
-
-
-            ////move ghosts
-            //redGhost.Left += ghost1;
-            //yellowGhost.Left += ghost2;
-
-            //// if the red ghost hits the picture box 4 then wereverse the speed
-            //if (redGhost.Bounds.IntersectsWith(pictureBox1.Bounds))
-            //    ghost1 = -ghost1;
-            //// if the red ghost hits the picture box 3 we reverse the speed
-            //else if (redGhost.Bounds.IntersectsWith(pictureBox2.Bounds))
-            //    ghost1 = -ghost1;
-            //// if the yellow ghost hits the picture box 1 then wereverse the speed
-            //if (yellowGhost.Bounds.IntersectsWith(pictureBox3.Bounds))
-            //    ghost2 = -ghost2;
-            //// if the yellow chost hits the picture box 2 then wereverse the speed
-            //else if (yellowGhost.Bounds.IntersectsWith(pictureBox4.Bounds))
-            //    ghost2 = -ghost2;
-            ////moving ghosts and bumping with the walls end
-            ////for loop to check walls, ghosts and points
-            //foreach (Control x in this.Controls)
-            //{
-            //    // checking if the player hits the wall or the ghost, then game is over
-            //    if (x is PictureBox && x.Tag == "wall" || x.Tag == "ghost")
-            //    {
-            //        if (((PictureBox)x).Bounds.IntersectsWith(pacman.Bounds))
-            //        {
-            //            pacman.Left = 0;
-            //            pacman.Top = 25;
-            //            label2.Text = "GAME OVER";
-            //            label2.Visible = true;
-            //            timer1.Stop();
-            //        }
-            //    }
-            //    if (x is PictureBox && x.Tag == "coin")
-            //    {
-            //        if (((PictureBox)x).Bounds.IntersectsWith(pacman.Bounds))
-            //        {
-            //            this.Controls.Remove(x);
-            //            score++;
-            //            //TODO check if all coins where "eaten"
-            //            if (score == total_coins)
-            //            {
-            //                //pacman.Left = 0;
-            //                //pacman.Top = 25;
-            //                label2.Text = "GAME WON!";
-            //                label2.Visible = true;
-            //                timer1.Stop();
-            //            }
-            //        }
-            //    }
-            //}
-            //pinkGhost.Left += ghost3x;
-            //pinkGhost.Top += ghost3y;
-
-            //if (pinkGhost.Left < boardLeft ||
-            //    pinkGhost.Left > boardRight ||
-            //    (pinkGhost.Bounds.IntersectsWith(pictureBox1.Bounds)) ||
-            //    (pinkGhost.Bounds.IntersectsWith(pictureBox2.Bounds)) ||
-            //    (pinkGhost.Bounds.IntersectsWith(pictureBox3.Bounds)) ||
-            //    (pinkGhost.Bounds.IntersectsWith(pictureBox4.Bounds)))
-            //{
-            //    ghost3x = -ghost3x;
-            //}
-            //if (pinkGhost.Top < boardTop || pinkGhost.Top + pinkGhost.Height > boardBottom - 2)
-            //{
-            //    ghost3y = -ghost3y;
-            //}
-
         }
 
-        //private void timer1_Tick(object sender, EventArgs e) {
-        //    label1.Text = "Score: " + score;
-
-
-        //    //move player
-        //    if (goleft) {
-        //        server.sendMove(port.ToString(), "left");
-        //        if (pacman1.Left > (boardLeft))
-        //            pacman1.Left -= speed;
-        //    }
-        //    if (goright) {
-        //        server.sendMove(port.ToString(), "right");
-        //        if (pacman1.Left < (boardRight))
-        //        pacman1.Left += speed;
-        //    }
-        //    if (goup) {
-        //        server.sendMove(port.ToString(), "up");
-        //        if (pacman1.Top > (boardTop))
-        //            pacman1.Top -= speed;
-        //    }
-        //    if (godown) {
-        //        server.sendMove(port.ToString(), "down");
-        //        if (pacman1.Top < (boardBottom))
-        //            pacman1.Top += speed;
-        //    }
-        //    //move ghosts
-        //    redGhost.Left += ghost1;
-        //    yellowGhost.Left += ghost2;
-
-        //    // if the red ghost hits the picture box 4 then wereverse the speed
-        //    if (redGhost.Bounds.IntersectsWith(pictureBox1.Bounds))
-        //        ghost1 = -ghost1;
-        //    // if the red ghost hits the picture box 3 we reverse the speed
-        //    else if (redGhost.Bounds.IntersectsWith(pictureBox2.Bounds))
-        //        ghost1 = -ghost1;
-        //    // if the yellow ghost hits the picture box 1 then wereverse the speed
-        //    if (yellowGhost.Bounds.IntersectsWith(pictureBox3.Bounds))
-        //        ghost2 = -ghost2;
-        //    // if the yellow chost hits the picture box 2 then wereverse the speed
-        //    else if (yellowGhost.Bounds.IntersectsWith(pictureBox4.Bounds))
-        //        ghost2 = -ghost2;
-        //    //moving ghosts and bumping with the walls end
-        //    //for loop to check walls, ghosts and points
-        //    foreach (Control x in this.Controls) {
-        //        // checking if the player hits the wall or the ghost, then game is over
-        //        if (x is PictureBox && x.Tag == "wall" || x.Tag == "ghost") {
-        //            if (((PictureBox)x).Bounds.IntersectsWith(pacman1.Bounds)) {
-        //                pacman1.Left = 0;
-        //                pacman1.Top = 25;
-        //                label2.Text = "GAME OVER";
-        //                label2.Visible = true;
-        //                timer1.Stop();
-        //            }
-        //        }
-        //        if (x is PictureBox && x.Tag == "coin") {
-        //            if (((PictureBox)x).Bounds.IntersectsWith(pacman1.Bounds)) {
-        //                this.Controls.Remove(x);
-        //                score++;
-        //                //TODO check if all coins where "eaten"
-        //                if (score == total_coins) {
-        //                    //pacman.Left = 0;
-        //                    //pacman.Top = 25;
-        //                    label2.Text = "GAME WON!";
-        //                    label2.Visible = true;
-        //                    timer1.Stop();
-        //                    }
-        //            }
-        //        }
-        //    }
-        //        pinkGhost.Left += ghost3x;
-        //        pinkGhost.Top += ghost3y;
-
-        //        if (pinkGhost.Left < boardLeft ||
-        //            pinkGhost.Left > boardRight ||
-        //            (pinkGhost.Bounds.IntersectsWith(pictureBox1.Bounds)) ||
-        //            (pinkGhost.Bounds.IntersectsWith(pictureBox2.Bounds)) ||
-        //            (pinkGhost.Bounds.IntersectsWith(pictureBox3.Bounds)) ||
-        //            (pinkGhost.Bounds.IntersectsWith(pictureBox4.Bounds))) {
-        //            ghost3x = -ghost3x;
-        //        }
-        //        if (pinkGhost.Top < boardTop || pinkGhost.Top + pinkGhost.Height > boardBottom - 2) {
-        //            ghost3y = -ghost3y;
-        //        }
-        //}
-
+       
         private void tbMsg_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
@@ -472,8 +291,6 @@ namespace pacman {
         public void AddMsg(string s, int[] vetor)
         {
             int flag = 0;     //if flag < (vector.count - 1) means that one or more messages are missing
-            Console.WriteLine("RECEBI [{0}, {1}, {2}]", vetor[0], vetor[1], vetor[2]);
-            Console.WriteLine("TENHO [{0}, {1}, {2}]", this.vector[0], this.vector[1], this.vector[2]);
             for(int i = 0; i < this.vector.Length; i++)
             {
                 if(this.vector[i] == vetor[i])
@@ -486,7 +303,6 @@ namespace pacman {
                 //means that it's receiving a valid message
                 this.tbChat.AppendText("\r\n" + s);
                 this.vector = vetor;
-                Console.WriteLine("vetor alterado [{0}, {1}]", this.vector[0], this.vector[1]);
                 isWaitting();  //check if there are any messages waitting dependent on this
             }
             else
@@ -498,103 +314,62 @@ namespace pacman {
         public void isWaitting()
         {
             int counter = 0; //if counter != vector.len - 1 means that the message is still deppendent on other
-            int j = 0;
-            bool found = false;
             int[] aux = new int[vector.Length];
-            int[] aux1 = new int[vector.Length];
             string temp = "";
             foreach (KeyValuePair<int[], string> pair in onHold)
             {
-                Console.WriteLine("pair: {0}, pair[0] {1}, pair[1] {2}, pair[2] {3}", pair.Key, pair.Key[0], pair.Key[1], pair.Key[2]);
-                //if(((pair.Key[0] == this.vector[0] + 1) && (pair.Key[1] == this.vector[1])) || ((pair.Key[0] == this.vector[0]) && (pair.Key[1] == this.vector[1] + 1)))
-                //{   //means that exists one message waiting to be written
-                //    Console.WriteLine("entrei ");
-                //    this.vector[0] = pair.Key[0];
-                //    this.vector[1] = pair.Key[1];
-                //    aux = vector;
-                //    aux1 = pair.Key;
-                //    temp = onHold[pair.Key];
-                //    break;
-                //}
-
                 counter = 0;
                 if (vector.Length == 2)
                 {
-                    Console.WriteLine("entrei no comprimento dois");
                     for (int i = 0; i < vector.Length; i++)
                     {
                         if (pair.Key[i] > vector[i] + 1)
                         {
+                            counter = 0;
                             break;
                         }
                         else if(pair.Key[i] < vector[i] + 1)
                         {
                             counter++;
-                            j = i;
-                            Console.WriteLine("counter " + counter);
                         }
                     }
                     if (counter == 1)
                     {
-                        Console.WriteLine("entrei " + pair.Key[j]);
+                        Console.WriteLine("counter é 1");
                         vector = pair.Key;
                         aux = vector;
-                        aux1 = pair.Key;
                         temp = onHold[pair.Key];
-                        found = true;
                         break;
                     }
                 }
                 else if (vector.Length > 2)
                 {
-                    Console.WriteLine("entrei no comprimento tres");
                     for (int i = 0; i < vector.Length; i++)
                     {
-                        Console.WriteLine("comparaçao " + pair.Key[i] + " < " + (vector[i] + 1));
                         if (pair.Key[i] > vector[i] + 1)
                         {
-                            //found = true;
                             break;
                         }
                         else if (pair.Key[i] <= vector[i])
                         {
                             counter++;
-                            //j = i;
-                            Console.WriteLine("counter " + counter);
-                            //vector[i] = pair.Key[i];
-                            //aux = vector;
-                            //aux1 = pair.Key;
-                            //temp = onHold[pair.Key];
-                            //found = true;
-                            //break;
-                        }
-                        else
-                        {
-                            j = i;
                         }
                     }
                     if (counter == vector.Length - 1)
                     {
-                        Console.WriteLine("entrei " + pair.Key[j]);
                         vector = pair.Key;
                         aux = vector;
-                        aux1 = pair.Key;
                         temp = onHold[pair.Key];
-                        found = true;
                         break;
                     }
 
                 }
                 
-                //if (found)
-                //{
-                //    break;
-                //}
             }
             if (aux == vector)
             {
-                Console.WriteLine("ESTE " + onHold[aux1] + " -- " + temp + "  " + vector[0]+"," + vector[1] + "," + vector[2]);
-                onHold.Remove(aux1);
+                Console.WriteLine("print " + vector);
+                onHold.Remove(vector);
                 AddMsg(temp, vector);
             }
         }
