@@ -380,6 +380,5 @@ namespace pacman {
             return this.server;
         }
 
-
     }
 }

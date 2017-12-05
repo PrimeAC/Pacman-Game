@@ -48,6 +48,9 @@ namespace Server
 
         private List<IClient> clients;
 
+        private int[] noresponse;
+        private List<IClient> removedclient = new List<IClient>();
+
         int yellow = 1; //1 if it is moving to the rigth, -1 if it is moving left
         int red = 1; //1 if it is moving to the rigth, -1 if it is moving left
         int pinkx = 1; //1 if it is moving to the rigth, -1 if it is moving left
@@ -113,6 +116,8 @@ namespace Server
             timer.Elapsed += update;
             timer.AutoReset = true;
             timer.Enabled = true;
+            noresponse = new int[clients.Count];
+
         }
 
         public Dictionary<string, int[]> getPacmans()
@@ -261,9 +266,28 @@ namespace Server
             moves.Clear();
             if (clients.Count > 0)
             {
+                int counter = 0;
                 foreach (IClient client in clients)
                 {
-                    client.updateGameState(pacmans, ghosts, coins);  
+                    try
+                    {
+                        if (noresponse[counter] < 30)
+                        {
+                            client.updateGameState(pacmans, ghosts, coins);
+                            noresponse[counter] = 0;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Exception " + e.Message);
+                        if(noresponse[counter] == 30)
+                        {
+                            removedclient.Add(client);
+                        }
+                        noresponse[counter] += 1;
+                        
+                    }
+                    counter++;
                 }
                 //to test the case where the server don´t send the update to all the clients
                 //shows that no information is lost when one update is recieved in the client
@@ -284,7 +308,7 @@ namespace Server
                 //    cnt1++;
                 //    cnt2++;
                 //}
-                }
+            }
             if (id != "")
             {
                 //means that a pacman lost during this round and will be removed from the pacmans 
