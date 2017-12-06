@@ -199,6 +199,7 @@ namespace pacman {
                         label2.Text = "GAME OVER";
                         label2.Visible = true;
                         timer1.Stop();
+                        server.gameOver(ip+":"+port);
                     }
                     else if(pacman.Value[2] == -2)
                     {
