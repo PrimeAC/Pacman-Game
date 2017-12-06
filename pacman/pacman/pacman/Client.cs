@@ -180,7 +180,8 @@ namespace pacman {
             public void BroadcastMessage(int[] vector)
             {
                 string MsgToBcast;
-                clients = form.getServer().getClients();
+                //clients = form.getServer().getClients();
+                clients = form.getClients();
                 lock (this)
                 {
                     MsgToBcast = messages[messages.Count - 1];

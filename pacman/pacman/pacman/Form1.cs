@@ -59,6 +59,8 @@ namespace pacman {
         //saves all messages that are waiting to be displayed
         private Dictionary<int[], string> onHold = new Dictionary<int[], string>();
 
+        private List<IClient> clients = new List<IClient>();
+
         IServer server;
         IClient client2;
 
@@ -80,6 +82,7 @@ namespace pacman {
                 }
                 vector[cnt] = 0;    //initializes the list with all positions equal to zero
                 cnt++;
+                clients.Add(client);
             }
 
             //to simulate that a message 2 arrives first that a message 1
@@ -380,5 +383,9 @@ namespace pacman {
             return this.server;
         }
 
+        public List<IClient> getClients()
+        {
+            return clients;
+        }
     }
 }
