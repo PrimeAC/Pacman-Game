@@ -13,6 +13,7 @@ namespace RemoteServices
         void RegisterClient(string NewClientIP, string NewClientPort);
         void sendMove(string ip, string port, string move);
         void readyClient();
+        void gameOver(string identificador);
     }
 
     public interface IClient

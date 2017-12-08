@@ -156,6 +156,11 @@ namespace Server
                     }
                 }
             }
+
+            public void gameOver(string identificador)
+            {
+                engine.removeClient(identificador);
+            }
         }
     }
 }

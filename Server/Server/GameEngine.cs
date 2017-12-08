@@ -20,8 +20,7 @@ namespace Server
         public static Dictionary<string, int[]> pacmans = new Dictionary<string, int[]>();
         //saves all the moves from one round ip:port, move
         public static Dictionary<string, string> moves = new Dictionary<string, string>();
-        //saves all pacmans ip:port, score
-        //public static Dictionary<string, int> score = new Dictionary<string, int>();
+       
 
         private int numberx = 1;
         private int numbery = 0;
@@ -155,16 +154,6 @@ namespace Server
             
         }
 
-        //public Dictionary<string, int> getScore()
-        //{
-        //    return score;
-        //}
-
-        //public void setScore(string ip, string port)
-        //{
-        //    score.Add(ip + ":" + port, 0);
-        //}
-
         public void seePacmans()
         {
             foreach (KeyValuePair<string, int[]> kvp in pacmans)
@@ -229,7 +218,6 @@ namespace Server
             Console.WriteLine("pacmans " + pacmans.Count);
             foreach (KeyValuePair<string, string> entry in moves.ToList())
             {
-                //if(pacmans[entry.Key] != null)
                 if(pacmans.ContainsKey(entry.Key))
                 {
                     //Console.WriteLine("vou enviar {0}, {1}, {2}, {3}", pacmans[entry.Key][0], pacmans[entry.Key][1], entry.Value, entry.Key);
@@ -238,22 +226,18 @@ namespace Server
                     if(hitWall(pacmans[entry.Key][0], pacmans[entry.Key][1], pacmansize))
                     {
                         Console.WriteLine("GAME OVER");
-                        //pacmans.Remove(entry.Key);  //if lose the key is removed
                         pacmans[entry.Key][2] = -1;  //means that he lost the game 
                         id = entry.Key;
                     }
                     if(hitGhost(pacmans[entry.Key][0], pacmans[entry.Key][1]))
                     {
                         Console.WriteLine("HIT A GHOST");
-                        //pacmans.Remove(entry.Key); //if lose the key is removed
                         pacmans[entry.Key][2] = -1;  //means that he lost the game 
                         id = entry.Key;
                     }
                     if(hitCoin(pacmans[entry.Key][0], pacmans[entry.Key][1]))
                     {
-                        //seeScore();
                         pacmans[entry.Key][2] += 1;
-                        //seeScore();
                         if(coins.Count == 0)
                         {
                             Console.WriteLine("VICTORY");
@@ -289,6 +273,13 @@ namespace Server
                     }
                     counter++;
                 }
+
+                if(removedclient.Count == clients.Count)
+                {
+                    //means that there are no more players alive
+                    Console.WriteLine("todos os clientes foram abaixo");
+                    timer.Stop();
+                }
                 //to test the case where the server don´t send the update to all the clients
                 //shows that no information is lost when one update is recieved in the client
                 //int cnt1 = 0;
@@ -321,6 +312,23 @@ namespace Server
             foreach(IClient client in clients)
             {
                 client.initGame(pacmans);
+            }
+        }
+
+        public void removeClient(string identificador)
+        {
+            foreach(IClient client in clients)
+            {
+                if(client.getIP()+":"+client.getPort() == identificador)
+                {
+                    removedclient.Add(client);
+                }
+            }
+            if (removedclient.Count == clients.Count)
+            {
+                //means that there are no more players alive
+                Console.WriteLine("todos os clientes foram abaixo");
+                timer.Stop();
             }
         }
 

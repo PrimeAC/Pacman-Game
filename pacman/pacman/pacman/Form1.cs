@@ -378,12 +378,6 @@ namespace pacman {
             }
         }
 
-
-        public IServer getServer()
-        {
-            return this.server;
-        }
-
         public List<IClient> getClients()
         {
             return clients;

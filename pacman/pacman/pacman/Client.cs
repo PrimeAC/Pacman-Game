@@ -132,7 +132,6 @@ namespace pacman {
                 {
                     Monitor.Pulse(_lockclient);
                 }
-                //form.initializeGame(gameRate, numPlayers);
             }
 
             public string getGameRate()
@@ -180,7 +179,6 @@ namespace pacman {
             public void BroadcastMessage(int[] vector)
             {
                 string MsgToBcast;
-                //clients = form.getServer().getClients();
                 clients = form.getClients();
                 lock (this)
                 {
