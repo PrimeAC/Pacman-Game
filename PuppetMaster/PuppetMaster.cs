@@ -63,6 +63,7 @@ namespace pacman
                 case "GlobalStatus":
                     break;
                 case "Crash":
+                    crash(commands[1]);
                     break;
                 case "Freeze":
                     break;
@@ -94,7 +95,7 @@ namespace pacman
             clients.Add(client_url);
 
             string commands = client_url + " " + msec_per_round + " " + num_players;
-            Console.WriteLine(commands);
+
             ProcessStartInfo info = new ProcessStartInfo(Client.executionPath(), commands);
             info.CreateNoWindow = false;
             Process.Start(info);
@@ -119,6 +120,37 @@ namespace pacman
             Process.Start(info);
         }
 
+        static void crash(string pid)
+        {
+
+            string[] words = pidUrl[pid].Split(':', '/');
+            int port = Int32.Parse(words[4]);
+
+            if (servers.Contains(pidUrl[pid]))
+            {
+
+                IServer remote = RemotingServices.Connect(typeof(IServer),
+                "tcp://localhost:" + port + "/" + words[5]) as IServer;
+                try
+                {
+
+                    pidUrl.Remove(pid);
+                    remote.getProcessToCrash();
+                }
+                catch (Exception ex) { };
+            }
+            else if(clients.Contains(pidUrl[pid]))
+            {
+                IClient remote = RemotingServices.Connect(typeof(IClient),
+                "tcp://localhost:" + port + "/" + words[5]) as IClient;
+                try
+                {
+                    pidUrl.Remove(pid);
+                    remote.getProcessToCrash();
+                }
+                catch (Exception ex) { };
+            }
+        }
 
 
     }

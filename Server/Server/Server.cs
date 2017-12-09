@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
+using System.Diagnostics;
 
 using RemoteServices;
 using System.Timers;
@@ -169,6 +170,11 @@ namespace pacman
             public void gameOver(string identificador)
             {
                 engine.removeClient(identificador);
+            }
+
+            public void getProcessToCrash()
+            {
+                Process.GetCurrentProcess().Kill();
             }
         }
     }

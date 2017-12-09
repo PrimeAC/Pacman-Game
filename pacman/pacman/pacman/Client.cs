@@ -8,6 +8,7 @@ using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Net.Sockets;
+using System.Diagnostics;
 
 using RemoteServices;
 using System.Net;
@@ -240,6 +241,11 @@ namespace pacman {
             public List<string> getMessages()
             {
                 return messages;
+            }
+
+            public void getProcessToCrash()
+            {
+                Process.GetCurrentProcess().Kill();
             }
 
         }
