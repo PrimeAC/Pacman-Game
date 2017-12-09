@@ -248,6 +248,21 @@ namespace pacman {
                 Process.GetCurrentProcess().Kill();
             }
 
+            public void freeze()
+            {
+                form.setFreeze();
+            }
+
+            public void unfreeze()
+            {
+                form.setUnfreeze();
+            }
+
+            public string getStatus()
+            {
+                return "On";
+            }
+
         }
 
     }

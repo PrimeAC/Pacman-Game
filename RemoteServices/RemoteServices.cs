@@ -14,6 +14,10 @@ namespace RemoteServices
         void sendMove(string ip, string port, string move);
         void readyClient();
         void gameOver(string identificador);
+        void getProcessToCrash();
+        void freeze();
+        void unfreeze();
+        string getStatus();
     }
 
     public interface IClient
@@ -35,5 +39,9 @@ namespace RemoteServices
         void BroadcastVector(int[] vector);
         void vectorToClient(int[] vector);
         List<string> getMessages();
+        void getProcessToCrash();
+        void freeze();
+        void unfreeze();
+        string getStatus();
     }
 }

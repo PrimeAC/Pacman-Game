@@ -11,10 +11,7 @@ namespace pacman
     class PuppetMaster
     {
 
-        //static IServer server;
-        //static IPCS IPCS;
         static PuppetMasterWindow form;
-        //private static Dictionary<string, IPCS> pcs = new Dictionary<string, IPCS>();
         private static Dictionary<string, string> pidUrl = new Dictionary<string, string>();
         private static List<string> servers = new List<string>();
         private static List<string> clients = new List<string>();
@@ -31,16 +28,6 @@ namespace pacman
             Application.Run(form);
         }
 
-        private static void consoleApp()
-        {
-            string input;
-            while (true)
-            {
-                input = Console.ReadLine();
-                //readConsole(input, 1);
-            };
-        }
-
         static string[] splitInputBox(string input)
         {
             string[] result = input.Split(' ');
@@ -52,28 +39,40 @@ namespace pacman
 
             string[] commands = splitInputBox(input);
 
+
             switch (commands[0])
             {
                 case "StartClient":
-                    startClient(commands[1], commands[2], commands[3], Int32.Parse(commands[4]), Int32.Parse(commands[5]));
-                    break;
+                    //if(commands.Length > 6)
+                    //{
+                        //startClient(commands[1], commands[2], commands[3], Int32.Parse(commands[4]), Int32.Parse(commands[5]), commands[6]);
+                        //break;
+                    //} else
+                    //{
+                        startClient(commands[1], commands[2], commands[3], Int32.Parse(commands[4]), Int32.Parse(commands[5]));
+                        break;
+                    //}
                 case "StartServer":
                     startServer(commands[1], commands[2], commands[3], Int32.Parse(commands[4]), Int32.Parse(commands[5]));
                     break;
                 case "GlobalStatus":
+                    globalStatus();
                     break;
                 case "Crash":
                     crash(commands[1]);
                     break;
                 case "Freeze":
+                    freeze(commands[1]);
                     break;
                 case "Unfreeze":
+                    unfreeze(commands[1]);
                     break;
                 case "InjectDelay":
                     break;
                 case "LocalState":
                     break;
                 case "Wait":
+                    wait(commands[1]);
                     break;
                 default:
                     form.changeText("Command not found");
@@ -84,9 +83,6 @@ namespace pacman
 
         static void startClient(string pid, string pcs_url, string client_url, int msec_per_round, int num_players)
         {
-            //Clients.Add(client_url);
-            //pidUrl.Add(pid, client_url);
-
             //IPCS = getPCS(pcs_url);
 
             //IPCS.create(pid, pcs_url, client_url, msec_per_round, num_players);
@@ -102,25 +98,122 @@ namespace pacman
         }
 
         static void startServer(string pid, string pcs_url, string server_url, int msec_per_round, int num_players)
-        {
-            //Server.Add(server_url);
-            //pidUrl.Add(pid, server_url);
-
+        {;
             //IPCS = getPCS(pcs_url);
 
             //IPCS.create(pid, pcs_url, server_url, msec_per_round, num_players);
 
+            string commands;
+
+            if (servers.Count == 0)
+            {
+                commands = server_url + " " + msec_per_round + " " + num_players + " " + 0;
+            }
+            else
+            {
+                commands = server_url + " " + msec_per_round + " " + num_players + " " + 1;
+            }
+
             pidUrl.Add(pid, server_url);
             servers.Add(server_url);
-
-            string commands = server_url + " " + msec_per_round + " " + num_players;
 
             ProcessStartInfo info = new ProcessStartInfo(Server.executionPath(), commands);
             info.CreateNoWindow = false;
             Process.Start(info);
         }
 
+        static void globalStatus()
+        {
+            string actives = "";
+            string inactives = "";
+            foreach(var server_url in servers)
+            {
+                IServer remote = RemotingServices.Connect(typeof(IServer), server_url) as IServer;
+                if (remote.getStatus().Equals("On"))
+                {
+                    actives += "PID: " + server_url + ", ";
+                }
+                else
+                {
+                    inactives += "PID: " + server_url + ", ";
+                }
+            }
+
+            foreach (var client_url in clients)
+            {
+                IClient remote = RemotingServices.Connect(typeof(IClient), client_url) as IClient;
+                if (remote.getStatus().Equals("On"))
+                {
+                    actives += "PID: " + client_url + ", ";
+                }
+                else
+                {
+                    inactives += "PID: " + client_url + ", ";
+                }
+            }
+
+            form.changeText("Who is alive: " + actives + "\r\n" + "Who seems to be down: " + inactives);
+        }
+
         static void crash(string pid)
+        {
+
+            string[] words = pidUrl[pid].Split(':', '/');
+            int port = Int32.Parse(words[4]);
+
+            if (servers.Contains(pidUrl[pid]))
+            {
+
+                IServer remote = RemotingServices.Connect(typeof(IServer), "tcp://localhost:" + port + "/" + words[5]) as IServer;
+                try
+                {
+
+                    pidUrl.Remove(pid);
+                    remote.getProcessToCrash();
+                }
+                catch (Exception ex) { };
+            }
+            else if(clients.Contains(pidUrl[pid]))
+            {
+                IClient remote = RemotingServices.Connect(typeof(IClient), "tcp://localhost:" + port + "/" + words[5]) as IClient;
+                try
+                {
+                    pidUrl.Remove(pid);
+                    remote.getProcessToCrash();
+                }
+                catch (Exception ex) { };
+            }
+        }
+
+        static void freeze(string pid)
+        {
+
+            string[] words = pidUrl[pid].Split(':', '/');
+            int port = Int32.Parse(words[4]);
+
+            if (servers.Contains(pidUrl[pid]))
+            {
+
+                IServer remote = RemotingServices.Connect(typeof(IServer), "tcp://localhost:" + port + "/" + words[5]) as IServer;
+                try
+                {
+
+                    remote.freeze();
+                }
+                catch (Exception ex) { };
+            }
+            else if (clients.Contains(pidUrl[pid]))
+            {
+                IClient remote = RemotingServices.Connect(typeof(IClient), "tcp://localhost:" + port + "/" + words[5]) as IClient;
+                try
+                {
+                    remote.freeze();
+                }
+                catch (Exception ex) { };
+            }
+        }
+
+        static void unfreeze(string pid)
         {
 
             string[] words = pidUrl[pid].Split(':', '/');
@@ -133,25 +226,56 @@ namespace pacman
                 "tcp://localhost:" + port + "/" + words[5]) as IServer;
                 try
                 {
-
-                    pidUrl.Remove(pid);
-                    remote.getProcessToCrash();
+                    remote.unfreeze();
                 }
                 catch (Exception ex) { };
             }
-            else if(clients.Contains(pidUrl[pid]))
+            else if (clients.Contains(pidUrl[pid]))
             {
                 IClient remote = RemotingServices.Connect(typeof(IClient),
                 "tcp://localhost:" + port + "/" + words[5]) as IClient;
                 try
                 {
-                    pidUrl.Remove(pid);
-                    remote.getProcessToCrash();
+                    remote.unfreeze();
                 }
                 catch (Exception ex) { };
             }
         }
 
+        static void wait(string time)
+        {
+            System.Threading.Thread.Sleep(Int32.Parse(time));
+        }
+
+        static private Dictionary<int, List<bool>> parseInputFile(string path)
+        {
+            Dictionary<int, List<bool>> movesPerRound = new Dictionary<int, List<bool>>();
+            List<bool> moves = new List<bool>(new bool[4]);
+
+            string[] fileInput = System.IO.File.ReadAllLines(path);
+            char[] delimiterChars = { ',' };
+            string[] words;
+            int i = 0;
+            foreach (string line in fileInput)
+            {
+                moves = new List<bool>(new bool[4]);
+                Console.WriteLine(line);
+                words = line.Split(delimiterChars);
+
+                moves[0] = false;
+                moves[1] = false;
+                moves[2] = false;
+                moves[3] = false;
+                if (words[1].Equals("LEFT")) { moves[0] = true; }
+                else if (words[1].Equals("RIGHT")) { moves[1] = true; }
+                else if (words[1].Equals("UP")) { moves[2] = true; }
+                else if (words[1].Equals("DOWN")) { moves[3] = true; }
+
+                movesPerRound.Add(Int32.Parse(words[0]), moves);
+
+            }
+            return movesPerRound;
+        }
 
     }
 }

@@ -25,24 +25,7 @@ namespace pacman {
         bool godown;
         bool goleft;
         bool goright;
-
-        int boardRight = 320;
-        int boardBottom = 320;
-        int boardLeft = 0;
-        int boardTop = 40;
-        //player speed
-        int speed = 5;
-
-        int score = 0; int total_coins = 61;
-
-        //ghost speed for the one direction ghosts
-        int ghost1 = 5;
-        int ghost2 = 5;
-        
-        //x and y directions for the bi-direccional pink ghost
-        int ghost3x = 5;
-        int ghost3y = 5;
-
+        bool freeze = false;
         private System.Windows.Forms.PictureBox[] array;
         private int cnt = 0;
         private int removecoin = 1;  //if equals 1 remove the coin from controls
@@ -170,89 +153,101 @@ namespace pacman {
                }
         }
 
-        private void keyisup(object sender, KeyEventArgs e) {
-            if (e.KeyCode == Keys.Left) {
-                goleft = false;
-            }
-            if (e.KeyCode == Keys.Right) {
-                goright = false;
-            }
-            if (e.KeyCode == Keys.Up) {
-                goup = false;
-            }
-            if (e.KeyCode == Keys.Down) {
-                godown = false;
+        private void keyisup(object sender, KeyEventArgs e)
+        {
+            if (freeze == false) {
+                if (e.KeyCode == Keys.Left)
+                {
+                    goleft = false;
+                }
+                if (e.KeyCode == Keys.Right)
+                {
+                    goright = false;
+                }
+                if (e.KeyCode == Keys.Up)
+                {
+                    goup = false;
+                }
+                if (e.KeyCode == Keys.Down)
+                {
+                    godown = false;
+                }
             }
         }
 
         //problema de quando jogar com 2 ou mais jogadores ele faz um movimento sempre na mesma direçao
         public void updateGame(Dictionary<string, int[]> pacmans, Dictionary<int, int[]> ghosts, Dictionary<int, int[]> coins)
         {
-            //move ghosts
-            foreach(KeyValuePair<int, int[]> ghost in ghosts)
+            if(freeze == false)
             {
-                if (ghost.Key == 1)
+                //move ghosts
+                foreach (KeyValuePair<int, int[]> ghost in ghosts)
                 {
-                    System.Drawing.Point point = new System.Drawing.Point(ghosts[ghost.Key][0], ghosts[ghost.Key][1]);
-                    this.pinkGhost.Location = point;
+                    if (ghost.Key == 1)
+                    {
+                        System.Drawing.Point point = new System.Drawing.Point(ghosts[ghost.Key][0], ghosts[ghost.Key][1]);
+                        this.pinkGhost.Location = point;
+                    }
+                    else if (ghost.Key == 2)
+                    {
+                        this.yellowGhost.Location = new System.Drawing.Point(ghosts[ghost.Key][0], ghosts[ghost.Key][1]);
+                    }
+                    else if (ghost.Key == 3)
+                    {
+                        this.redGhost.Location = new System.Drawing.Point(ghosts[ghost.Key][0], ghosts[ghost.Key][1]);
+                    }
                 }
-                else if(ghost.Key == 2)
-                {
-                    this.yellowGhost.Location = new System.Drawing.Point(ghosts[ghost.Key][0], ghosts[ghost.Key][1]);
-                }
-                else if (ghost.Key == 3)
-                {
-                    this.redGhost.Location = new System.Drawing.Point(ghosts[ghost.Key][0], ghosts[ghost.Key][1]);
-                }
-            }
 
-            //move pacmans
-            cnt = 0;
-            foreach (KeyValuePair<string, int[]> pacman in pacmans)
-            {
-                if (pacman.Key.Equals(ip + ":" + port))
+                //move pacmans
+                cnt = 0;
+                foreach (KeyValuePair<string, int[]> pacman in pacmans)
                 {
-                    if(pacman.Value[2] == -1)
+                    if (pacman.Key.Equals(ip + ":" + port))
                     {
-                        label2.Text = "GAME OVER";
-                        label2.Visible = true;
-                        timer1.Stop();
-                        server.gameOver(ip+":"+port);
-                    }
-                    else if(pacman.Value[2] == -2)
-                    {
-                        label2.Text = "GAME WON!";
-                        label2.Visible = true;
-                        timer1.Stop();
-                        server.gameOver(ip + ":" + port);
-                    }
-                    else
-                    {
-                        label1.Text = "Score"+ id +": " + pacmans[pacman.Key][2];
-                    }
-                }
-                array[cnt++].Location = new System.Drawing.Point(pacmans[pacman.Key][0], pacmans[pacman.Key][1]);
-                foreach (Control x in this.Controls)
-                {
-                    if (x is PictureBox && x.Tag == "coin")
-                    {
-                        removecoin = 1;
-                        foreach(KeyValuePair<int, int[]> coin in coins)
+                        if (pacman.Value[2] == -1)
                         {
-                            if (x.Location == new Point(coin.Value[0], coin.Value[1]))
+                            label2.Text = "GAME OVER";
+                            label2.Visible = true;
+                            timer1.Stop();
+                            server.gameOver(ip + ":" + port);
+                        }
+                        else if (pacman.Value[2] == -2)
+                        {
+                            label2.Text = "GAME WON!";
+                            label2.Visible = true;
+                            timer1.Stop();
+                            server.gameOver(ip + ":" + port);
+                        }
+                        else
+                        {
+                            label1.Text = "Score" + id + ": " + pacmans[pacman.Key][2];
+                        }
+                    }
+                    array[cnt++].Location = new System.Drawing.Point(pacmans[pacman.Key][0], pacmans[pacman.Key][1]);
+                    foreach (Control x in this.Controls)
+                    {
+                        if (x is PictureBox && x.Tag == "coin")
+                        {
+                            removecoin = 1;
+                            foreach (KeyValuePair<int, int[]> coin in coins)
                             {
-                                removecoin = 0;  //means that don't need to remove this coin
+                                if (x.Location == new Point(coin.Value[0], coin.Value[1]))
+                                {
+                                    removecoin = 0;  //means that don't need to remove this coin
+                                }
+                            }
+                            if (removecoin == 1)
+                            {
+                                //means that th coin doesn't exist anymore in the coins dictionary
+                                //so it has to be removed
+                                this.Controls.Remove(x);
                             }
                         }
-                        if(removecoin == 1)
-                        {
-                            //means that th coin doesn't exist anymore in the coins dictionary
-                            //so it has to be removed
-                            this.Controls.Remove(x);
-                        }
                     }
                 }
+
             }
+            
         }
 
         public void initializeGame(Dictionary<string, int[]> pacmans)
@@ -276,21 +271,24 @@ namespace pacman {
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            if (goleft)
+            if (freeze == false)
             {
-                server.sendMove(ip, port.ToString(), "left");
-            }
-            if (goright)
-            {
-                server.sendMove(ip, port.ToString(), "right");
-            }
-            if (goup)
-            {
-                server.sendMove(ip, port.ToString(), "up");
-            }
-            if (godown)
-            {
-                server.sendMove(ip, port.ToString(), "down");
+                if (goleft)
+                {
+                    server.sendMove(ip, port.ToString(), "left");
+                }
+                if (goright)
+                {
+                    server.sendMove(ip, port.ToString(), "right");
+                }
+                if (goup)
+                {
+                    server.sendMove(ip, port.ToString(), "up");
+                }
+                if (godown)
+                {
+                    server.sendMove(ip, port.ToString(), "down");
+                }
             }
         }
 
@@ -603,9 +601,14 @@ namespace pacman {
             return clients;
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        public void setFreeze()
         {
+            freeze = true;
+        }
 
+        public void setUnfreeze()
+        {
+            freeze = false;
         }
     }
 }

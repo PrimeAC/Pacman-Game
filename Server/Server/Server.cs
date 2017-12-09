@@ -176,6 +176,21 @@ namespace pacman
             {
                 Process.GetCurrentProcess().Kill();
             }
+
+            public void freeze()
+            {
+                engine.setFreeze();
+            }
+
+            public void unfreeze()
+            {
+                engine.setUnfreeze();
+            }
+
+            public string getStatus()
+            {
+                return "On";
+            }
         }
     }
 }

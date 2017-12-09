@@ -20,7 +20,7 @@ namespace pacman
         public static Dictionary<string, int[]> pacmans = new Dictionary<string, int[]>();
         //saves all the moves from one round ip:port, move
         public static Dictionary<string, string> moves = new Dictionary<string, string>();
-       
+        public bool freeze = false;
 
         private int numberx = 1;
         private int numbery = 0;
@@ -211,100 +211,104 @@ namespace pacman
 
         public void update(object sender, ElapsedEventArgs elapsedEventArg)
         {
-            string id = "";
-            moveRedGhost();
-            movePinkGhost();
-            moveYellowGhost();
-            Console.WriteLine("pacmans " + pacmans.Count);
-            foreach (KeyValuePair<string, string> entry in moves.ToList())
-            {
-                if(pacmans.ContainsKey(entry.Key))
+            if(freeze == false){
+
+                string id = "";
+                moveRedGhost();
+                movePinkGhost();
+                moveYellowGhost();
+                Console.WriteLine("pacmans " + pacmans.Count);
+                foreach (KeyValuePair<string, string> entry in moves.ToList())
                 {
-                    //Console.WriteLine("vou enviar {0}, {1}, {2}, {3}", pacmans[entry.Key][0], pacmans[entry.Key][1], entry.Value, entry.Key);
-                    movePacman(pacmans[entry.Key][0], pacmans[entry.Key][1], entry.Value, entry.Key);
-                    //Console.WriteLine("recebi {0}, {1}, {2}, {3}", pacmans[entry.Key][0], pacmans[entry.Key][1], entry.Value, entry.Key);
-                    if(hitWall(pacmans[entry.Key][0], pacmans[entry.Key][1], pacmansize))
+                    if (pacmans.ContainsKey(entry.Key))
                     {
-                        Console.WriteLine("GAME OVER");
-                        pacmans[entry.Key][2] = -1;  //means that he lost the game 
-                        id = entry.Key;
-                    }
-                    if(hitGhost(pacmans[entry.Key][0], pacmans[entry.Key][1]))
-                    {
-                        Console.WriteLine("HIT A GHOST");
-                        pacmans[entry.Key][2] = -1;  //means that he lost the game 
-                        id = entry.Key;
-                    }
-                    if(hitCoin(pacmans[entry.Key][0], pacmans[entry.Key][1]))
-                    {
-                        pacmans[entry.Key][2] += 1;
-                        if(coins.Count == 0)
+                        //Console.WriteLine("vou enviar {0}, {1}, {2}, {3}", pacmans[entry.Key][0], pacmans[entry.Key][1], entry.Value, entry.Key);
+                        movePacman(pacmans[entry.Key][0], pacmans[entry.Key][1], entry.Value, entry.Key);
+                        //Console.WriteLine("recebi {0}, {1}, {2}, {3}", pacmans[entry.Key][0], pacmans[entry.Key][1], entry.Value, entry.Key);
+                        if (hitWall(pacmans[entry.Key][0], pacmans[entry.Key][1], pacmansize))
                         {
-                            Console.WriteLine("VICTORY");
-                            pacmans[entry.Key][2] = -2;  //means that he won the game
+                            Console.WriteLine("GAME OVER");
+                            pacmans[entry.Key][2] = -1;  //means that he lost the game 
+                            id = entry.Key;
+                        }
+                        if (hitGhost(pacmans[entry.Key][0], pacmans[entry.Key][1]))
+                        {
+                            Console.WriteLine("HIT A GHOST");
+                            pacmans[entry.Key][2] = -1;  //means that he lost the game 
+                            id = entry.Key;
+                        }
+                        if (hitCoin(pacmans[entry.Key][0], pacmans[entry.Key][1]))
+                        {
+                            pacmans[entry.Key][2] += 1;
+                            if (coins.Count == 0)
+                            {
+                                Console.WriteLine("VICTORY");
+                                pacmans[entry.Key][2] = -2;  //means that he won the game
+                            }
                         }
                     }
                 }
-            }
 
-            moves.Clear();
-            if (clients.Count > 0)
-            {
-                int counter = 0;
-                foreach (IClient client in clients)
+                moves.Clear();
+                if (clients.Count > 0)
                 {
-                    try
+                    int counter = 0;
+                    foreach (IClient client in clients)
                     {
-                        if (noresponse[counter] < 30)
+                        try
                         {
-                            client.updateGameState(pacmans, ghosts, coins);
-                            noresponse[counter] = 0;
+                            if (noresponse[counter] < 30)
+                            {
+                                client.updateGameState(pacmans, ghosts, coins);
+                                noresponse[counter] = 0;
+                            }
                         }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("Exception " + e.Message);
-                        if(noresponse[counter] == 30)
+                        catch (Exception e)
                         {
-                            removedclient.Add(client);
-                        }
-                        noresponse[counter] += 1;
-                        
-                    }
-                    counter++;
-                }
+                            Console.WriteLine("Exception " + e.Message);
+                            if (noresponse[counter] == 30)
+                            {
+                                removedclient.Add(client);
+                            }
+                            noresponse[counter] += 1;
 
-                if(removedclient.Count == clients.Count)
+                        }
+                        counter++;
+                    }
+
+                    if (removedclient.Count == clients.Count)
+                    {
+                        //means that there are no more players alive
+                        Console.WriteLine("todos os clientes foram abaixo " + removedclient.Count);
+                        timer.Stop();
+                    }
+                    //to test the case where the server don´t send the update to all the clients
+                    //shows that no information is lost when one update is recieved in the client
+                    //int cnt1 = 0;
+                    //foreach (IClient client in clients)
+                    //{
+                    //    Console.WriteLine("cnt1 {0}, cnt2 {1}", cnt1, cnt2);
+                    //    if (cnt1 != 1)
+                    //    {
+                    //        client.updateGameState(pacmans, ghosts, coins);
+                    //    }
+                    //    if(cnt2 == 50)
+                    //    {
+                    //        cnt1 = -1;
+                    //        cnt2 = 0;
+                    //    }
+
+                    //    cnt1++;
+                    //    cnt2++;
+                    //}
+                }
+                if (id != "")
                 {
-                    //means that there are no more players alive
-                    Console.WriteLine("todos os clientes foram abaixo " + removedclient.Count);
-                    timer.Stop();
+                    //means that a pacman lost during this round and will be removed from the pacmans 
+                    pacmans.Remove(id);
                 }
-                //to test the case where the server don´t send the update to all the clients
-                //shows that no information is lost when one update is recieved in the client
-                //int cnt1 = 0;
-                //foreach (IClient client in clients)
-                //{
-                //    Console.WriteLine("cnt1 {0}, cnt2 {1}", cnt1, cnt2);
-                //    if (cnt1 != 1)
-                //    {
-                //        client.updateGameState(pacmans, ghosts, coins);
-                //    }
-                //    if(cnt2 == 50)
-                //    {
-                //        cnt1 = -1;
-                //        cnt2 = 0;
-                //    }
-
-                //    cnt1++;
-                //    cnt2++;
-                //}
             }
-            if (id != "")
-            {
-                //means that a pacman lost during this round and will be removed from the pacmans 
-                pacmans.Remove(id);
-            }
+            
         }
 
         public void start()
@@ -509,6 +513,16 @@ namespace pacman
                 }
             }
             return "";
+        }
+
+        public void setFreeze()
+        {
+            freeze = true;
+        }
+
+        public void setUnfreeze()
+        {
+            freeze = false;
         }
 
     }
