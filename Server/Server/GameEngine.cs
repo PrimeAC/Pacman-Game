@@ -277,7 +277,7 @@ namespace Server
                 if(removedclient.Count == clients.Count)
                 {
                     //means that there are no more players alive
-                    Console.WriteLine("todos os clientes foram abaixo");
+                    Console.WriteLine("todos os clientes foram abaixo " + removedclient.Count);
                     timer.Stop();
                 }
                 //to test the case where the server don´t send the update to all the clients
@@ -327,7 +327,7 @@ namespace Server
             if (removedclient.Count == clients.Count)
             {
                 //means that there are no more players alive
-                Console.WriteLine("todos os clientes foram abaixo");
+                Console.WriteLine("todos os clientes foram abaixo " + removedclient.Count);
                 timer.Stop();
             }
         }

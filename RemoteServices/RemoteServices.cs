@@ -31,6 +31,9 @@ namespace RemoteServices
         void MsgToClient(string message, int[] vector);
         void SendMsg(string message, int[] vector);
         void BroadcastMessage(int[] vector);
+        void requestMessage(int[] vector);
+        void BroadcastVector(int[] vector);
+        void vectorToClient(int[] vector);
         List<string> getMessages();
     }
 }

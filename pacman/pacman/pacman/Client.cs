@@ -85,6 +85,7 @@ namespace pacman {
         delegate void DelAddMsg(string mensagem, int[] vector);
         delegate void DelUpdateGame(Dictionary<string, int[]> pacmans, Dictionary<int, int[]> ghosts, Dictionary<int, int[]> coins);
         delegate void DelInitGame(Dictionary<string, int[]> pacmans);
+        delegate void DelAddVector(int[] vector);
 
         public class ClientServices : MarshalByRefObject, IClient
         {
@@ -196,6 +197,35 @@ namespace pacman {
                         clients.RemoveAt(i);
                     }
                 }
+            }
+
+            public void requestMessage(int[] vector)
+            {
+                Thread t = new Thread(() => BroadcastVector(vector));
+                t.Start();
+            }
+
+            public void BroadcastVector(int[] vector)
+            {
+                clients = form.getClients();
+                for (int i = 0; i < clients.Count; i++)
+                {
+                    try
+                    {
+                        ((IClient)clients[i]).vectorToClient(vector);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Failed sending message to client. Removing client. " + e.Message);
+                        clients.RemoveAt(i);
+                    }
+                }
+            }
+
+            public void vectorToClient(int[] vector)
+            {
+                // thread-safe access to form
+                form.Invoke(new DelAddVector(form.gotVector), vector);
             }
 
             public List<string> getMessages()

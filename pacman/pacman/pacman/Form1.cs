@@ -57,9 +57,19 @@ namespace pacman {
         private int[] vector;   //list used to assure causal order in the messages
 
         //saves all messages that are waiting to be displayed
-        private Dictionary<int[], string> onHold = new Dictionary<int[], string>();
+        private Dictionary<int[], string[]> onHold = new Dictionary<int[], string[]>();
+
+        //saves all messages that have been displayed
+        private Dictionary<int[], string> displayed = new Dictionary<int[], string>();
+
+        //saves the order of the displayed messages
+        private List<int[]> messageorder = new List<int[]>();
+
+        private System.Windows.Forms.Timer timer2;
 
         private List<IClient> clients = new List<IClient>();
+
+        static object _lockform = new Object();
 
         IServer server;
         IClient client2;
@@ -88,9 +98,10 @@ namespace pacman {
             //to simulate that a message 2 arrives first that a message 1
             //only works for two clients
             //if there were three the aux should have 3 fields
-            //int[] aux = { 1, 2 };
-            //onHold.Add(aux, "1111: teste");
-            //Console.WriteLine("on hold {0}, {1}, mensagem {2}", aux[0], aux[1], onHold[aux]);
+            int[] aux = { 1, 2 };
+            string[] saux = { "1111: teste", "12/5/2017 19:03:06" };
+            onHold.Add(aux, saux);
+            Console.WriteLine("on hold {0}, {1}, mensagem {2}", aux[0], aux[1], onHold[aux]);
             //int[] aux1 = { 1, 3 };
             //onHold.Add(aux1, "1111: teste recursivo");
             //Console.WriteLine("on hold {0}, {1}, mensagem {2}", aux1[0], aux1[1], onHold[aux1]);
@@ -121,6 +132,13 @@ namespace pacman {
             {
                 AddMsg((string)o, vector);
             }
+
+            // timer2
+            // 
+            this.timer2 = new System.Windows.Forms.Timer(this.components);
+            this.timer2.Enabled = true;
+            this.timer2.Interval = 30000;  //each 30 seconds check if there are messages that could have been lost
+            this.timer2.Tick += new System.EventHandler(this.waitingMessages);
 
             server.readyClient();
             
@@ -206,6 +224,7 @@ namespace pacman {
                         label2.Text = "GAME WON!";
                         label2.Visible = true;
                         timer1.Stop();
+                        server.gameOver(ip + ":" + port);
                     }
                     else
                     {
@@ -283,8 +302,15 @@ namespace pacman {
                 vector[id] += 1;
                
                 Console.WriteLine("vector: [{0}, {1}]", vector[0], vector[1]);
-
-                client2.SendMsg(port + ": " + tbMsg.Text, vector);
+                if(id == 1 && vector[id] == 1)
+                {
+                    AddMsg(tbMsg.Text, vector);
+                }
+                else
+                {
+                    client2.SendMsg(port + ": " + tbMsg.Text, vector);
+                }
+                
                 tbMsg.Clear();
                 tbMsg.Enabled = false;
                 this.Focus();
@@ -294,39 +320,125 @@ namespace pacman {
 
         public void AddMsg(string s, int[] vetor)
         {
+            Console.WriteLine("vetor do add {0}, {1}, displayed: {2}, on hold {3} ", vetor[0], vetor[1], displayed.ContainsKey(vetor), onHold.ContainsKey(vector));
             int flag = 0;     //if flag < (vector.count - 1) means that one or more messages are missing
-            for(int i = 0; i < this.vector.Length; i++)
+            int[] aux = new int[vector.Length];
+            bool flag1 = false;
+            if (displayed.Count != 0)
             {
-                if(this.vector[i] == vetor[i])
+                foreach (KeyValuePair<int[], string> pair in displayed)
                 {
-                    flag++;
+                    Console.WriteLine("flag1 dentro " + flag1);
+                    flag1 = true;
+                    for (int i = 0; i < vetor.Length; i++)
+                    {
+                        if (vetor[i] != pair.Key[i])
+                        {
+                            Console.WriteLine("e diferente");
+                            flag1 = false;
+                            break;
+                        }
+                    }
+                    Console.WriteLine("valores par {0}, {1}, valores vector {2}, {3}", pair.Key[0], pair.Key[1], vetor[0], vetor[1]);
+                    if (flag1)
+                    {
+                        Console.WriteLine("entrie dentro do if e fiz break");
+                        break;
+                    }
                 }
             }
-            if(flag >= this.vector.Length - 1)
+            Console.WriteLine("flag1 " + flag1);
+            if (!flag1)
+            //if (!displayed.ContainsKey(vetor))
+            //bool display = isDisplayed(vetor);
+            //if(!display)
             {
-                //means that it's receiving a valid message
-                this.tbChat.AppendText("\r\n" + s);
-                this.vector = vetor;
-                isWaitting();  //check if there are any messages waitting dependent on this
+                Console.WriteLine("ENTREI no primeiro");
+                if (!onHold.ContainsKey(vetor))
+                {
+                    Console.WriteLine("ENTREI no segundo");
+                    for (int i = 0; i < this.vector.Length; i++)
+                    {
+                        if (this.vector[i] == vetor[i])
+                        {
+                            flag++;
+                        }
+                        if (this.vector[i] + 1 < vetor[i])
+                        {
+                            flag = 0;
+                            break;
+                        }
+                        if (this.vector[i] > vetor[i] + 1)
+                        {
+                            //special case, only appens when a message arrives late from another client
+                            flag = -1;
+                            break;
+                        }
+                    }
+                    if (flag >= this.vector.Length - 1)
+                    {
+                        //means that it's receiving a valid message
+                        this.tbChat.AppendText("\r\n" + s);
+                        lock (_lockform)
+                        {
+                            Console.WriteLine("TENHO : {0}, {1}", vector[0], vector[1]);
+                            this.vector = vetor;
+                            Console.WriteLine("A ADICIONAR : {0}, {1}", vector[0], vector[1]);
+                            //getDisplay(vector);
+                            for(int i = 0; i < aux.Length; i++)
+                            {
+                                aux[i] = vector[i];
+                            }
+                            displayed.Add(aux, s);
+                            getDisplay();
+                            //seeOrder();
+                            messageorder.Add(aux);
+                            seeOrder();
+                        }
+                        isWaitting();  //check if there are any messages waitting dependent on this
+                    }
+                    else if (flag == -1)
+                    {
+                        this.tbChat.AppendText("\r\n" + s);
+                        Console.WriteLine("A ADICIONAR especial : {0}, {1}", vetor[0], vetor[1]);
+                        lock (_lockform)
+                        {
+                            for (int i = 0; i < aux.Length; i++)
+                            {
+                                aux[i] = vetor[i];
+                            }
+                            displayed.Add(aux, s);
+                        }
+                    }
+                    else
+                    {
+                        string[] saux = { s, DateTime.Now.ToString() };
+                        for (int i = 0; i < aux.Length; i++)
+                        {
+                            aux[i] = vetor[i];
+                        }
+                        Console.WriteLine("on hold " + aux[0] + " - " + aux[1]);
+                        onHold.Add(aux, saux);
+                    }
+                }
             }
-            else
-            {
-                onHold.Add(vetor, s); 
-            }  
+            //getDisplay();
         }
 
         public void isWaitting()
         {
             int counter = 0; //if counter != vector.len - 1 means that the message is still deppendent on other
             int[] aux = new int[vector.Length];
-            string temp = "";
-            foreach (KeyValuePair<int[], string> pair in onHold)
+            string[] temp = new string[2];
+            foreach (KeyValuePair<int[], string[]> pair in onHold)
             {
                 counter = 0;
                 if (vector.Length == 2)
                 {
+                    Console.WriteLine("len 2");
                     for (int i = 0; i < vector.Length; i++)
                     {
+                        Console.WriteLine("comparaçao {0} {1}" ,pair.Key[i], vector[i]);
                         if (pair.Key[i] > vector[i] + 1)
                         {
                             counter = 0;
@@ -372,9 +484,117 @@ namespace pacman {
             }
             if (aux == vector)
             {
-                Console.WriteLine("print " + vector);
+                Console.WriteLine("uma mensagem a espera que pode ser enviada");
                 onHold.Remove(vector);
-                AddMsg(temp, vector);
+                AddMsg(temp[0], vector);
+            }
+        }
+
+        public void waitingMessages(object sender, EventArgs e)
+        {
+            foreach (KeyValuePair<int[], string[]> pair in onHold)
+            {
+                Console.WriteLine("data on hold: {0}, data atual: {1} chave [{2}, {3}]", DateTime.Parse(onHold[pair.Key][1]), DateTime.Now, pair.Key[0], pair.Key[1]);
+                if (DateTime.Parse(onHold[pair.Key][1]).AddMinutes(1) < DateTime.Now)
+                {
+                    //means that the message is waiting for at least for a minute
+                    //possibly the message in who is depending was lost
+                    //it is needed to ask for it again
+                    Console.WriteLine("dentro do if -> data on hold: {0}, data atual: {1}, à procura da chave [{2}, {3}]", DateTime.Parse(onHold[pair.Key][1]), DateTime.Now, pair.Key[0], pair.Key[1]);
+                    client2.requestMessage(pair.Key);
+                }
+            }
+        }
+
+        //public Boolean isDisplayed(int[] vector)
+        //{
+        //    bool flag = true;
+        //    foreach (KeyValuePair<int[], string> pair in displayed)
+        //    {
+        //        flag = true;
+        //        for (int i = 0; i < vector.Length; i++)
+        //        {
+        //            Console.WriteLine("valores par {0}, {1}, valores vector {2}, {3}", pair.Key[0], pair.Key[1], vector[0], vector[1]);
+        //            if (vector[i] != pair.Key[i])
+        //            {
+        //                Console.WriteLine("e diferente");
+        //                flag = false;
+        //                break;
+        //            }
+        //        }
+        //        if (flag)
+        //        {
+        //            Console.WriteLine("encontrei");
+        //            return flag;
+        //        }
+        //    }
+        //    return flag;
+        //}
+
+        public void gotVector(int[] vector)
+        {
+            Console.WriteLine("vou procurar [{0}, {1}], {2} {3} ", vector[0], vector[1], displayed.ContainsKey(vector), displayed.ContainsKey(vector));
+            getDisplay();
+            bool flag = false;
+            foreach (KeyValuePair<int[], string> pair in displayed)
+            {
+                flag = true;
+                for (int i = 0; i < vector.Length; i++)
+                {
+                    if (vector[i] != pair.Key[i])
+                    {
+                        Console.WriteLine("e diferente");
+                        flag = false;
+                        break;
+                    }
+                }
+                Console.WriteLine("valores par {0}, {1}, valores vector {2}, {3}", pair.Key[0], pair.Key[1], vector[0], vector[1]);
+                if (flag)
+                {
+                    break;
+                }
+            }
+            
+            if(flag)
+            //if (displayed.ContainsKey(vector))
+            //if (isDisplayed(vector))
+            {
+                Console.WriteLine("tenho a chave que procuras " + vector);
+                //this client haves the message displayed, that means that haves the one that other messages are depending
+                for (int i = 0; i < messageorder.Count; i++)
+                {
+                    int cnt1 = 0;
+                    for (int j = 0; j < vector.Length; j++)
+                    {
+                        if (messageorder[i][j] == vector[j])
+                        {
+                            cnt1++;
+                        }
+                    }
+                    if (cnt1 == vector.Length)
+                    {
+                        Console.WriteLine("vou enviar {0} - {1}, i = {2}", displayed[messageorder[i - 1]], messageorder[i - 1], i);
+                        client2.SendMsg(displayed[messageorder[i - 1]], messageorder[i - 1]);
+                        break;
+                    }
+                }
+            }
+        }
+
+        public void getDisplay()
+        {
+            Console.WriteLine("get do tamanho do displayed: {0}", displayed.Count);
+            foreach (KeyValuePair<int[], string> pair in displayed)
+            {
+                Console.WriteLine("displayed {0}, {1}, {2}", displayed[pair.Key], pair.Key[0], pair.Key[1]);
+            }
+        }
+
+        public void seeOrder()
+        {
+            for (int i = 0; i < messageorder.Count; i++)
+            {
+                Console.WriteLine("ordem [{0}, {1}], valor do i {2}", messageorder[i][0], messageorder[i][1], i);
             }
         }
 
