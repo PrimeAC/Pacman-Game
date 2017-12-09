@@ -11,9 +11,9 @@ using RemoteServices;
 using System.Timers;
 using System.Threading;
 
-namespace Server
+namespace pacman
 {
-    static class Server
+    public static class Server
     {
         private static string MSEC_PER_ROUND;
         private static int NUM_PLAYERS;
@@ -29,10 +29,17 @@ namespace Server
 
         private static System.Timers.Timer aTimer;
 
+        public static string executionPath()
+        {
+            return @Environment.CurrentDirectory + "/Server.exe";
+        }
+
         static void Main(string[] args)
         {
+            string url = args[0];
+            string[] urlSplit = url.Split(':', '/');
 
-            TcpChannel channel = new TcpChannel(8086);
+            TcpChannel channel = new TcpChannel(Int32.Parse(urlSplit[4]));
             ChannelServices.RegisterChannel(channel, false);
 
             //Alternative 1
@@ -45,15 +52,17 @@ namespace Server
             RemotingServices.Marshal(service, "Server",
                 typeof(ServerServices));
 
-            System.Console.WriteLine("Please enter the desired game rate:");
-            MSEC_PER_ROUND = System.Console.ReadLine();
+            System.Console.WriteLine("Desired game rate:");
+            MSEC_PER_ROUND = args[1];
+            System.Console.WriteLine(args[1]);
             if (MSEC_PER_ROUND == "")
             {
                 MSEC_PER_ROUND = "20";
             }
 
-            System.Console.WriteLine("Please enter the number of players:");
-            NUM_PLAYERS = Int32.Parse(System.Console.ReadLine());
+            System.Console.WriteLine("Number of players:");
+            NUM_PLAYERS = Int32.Parse(args[2]);
+            System.Console.WriteLine(args[2]);
 
             gamesettings = true;
 

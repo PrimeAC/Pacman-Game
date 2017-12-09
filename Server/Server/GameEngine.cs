@@ -6,9 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 
-namespace Server
+namespace pacman
 {
-    class GameEngine
+    public class GameEngine
     {
         //saves all coins positions i, [x, y]
         public static Dictionary<int, int[]> coins = new Dictionary<int, int[]>();

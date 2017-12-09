@@ -14,17 +14,26 @@ using System.Net;
 
 
 namespace pacman {
-    class Client {
+    public static class Client {
 
         static object _lockclient = new Object();
+
+        public static string executionPath()
+        {
+            return @Environment.CurrentDirectory + "/pacman.exe";
+        }
 
         static Form1 form;
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main() {
-            int port = FreeTcpPort();
+        static void Main(string[] args) {
+
+            string url = args[0];
+            string[] urlSplit = url.Split(':', '/');
+
+            int port = Int32.Parse(urlSplit[4]);
             string ip = GetLocalIPAddress();
             TcpChannel chan = new TcpChannel(port);
             ChannelServices.RegisterChannel(chan, false);
