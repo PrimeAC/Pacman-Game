@@ -43,15 +43,8 @@ namespace pacman
             switch (commands[0])
             {
                 case "StartClient":
-                    //if(commands.Length > 6)
-                    //{
-                        //startClient(commands[1], commands[2], commands[3], Int32.Parse(commands[4]), Int32.Parse(commands[5]), commands[6]);
-                        //break;
-                    //} else
-                    //{
-                        startClient(commands[1], commands[2], commands[3], Int32.Parse(commands[4]), Int32.Parse(commands[5]));
-                        break;
-                    //}
+                    startClient(commands[1], commands[2], commands[3], Int32.Parse(commands[4]), Int32.Parse(commands[5]));
+                    break;
                 case "StartServer":
                     startServer(commands[1], commands[2], commands[3], Int32.Parse(commands[4]), Int32.Parse(commands[5]));
                     break;
@@ -245,36 +238,6 @@ namespace pacman
         static void wait(string time)
         {
             System.Threading.Thread.Sleep(Int32.Parse(time));
-        }
-
-        static private Dictionary<int, List<bool>> parseInputFile(string path)
-        {
-            Dictionary<int, List<bool>> movesPerRound = new Dictionary<int, List<bool>>();
-            List<bool> moves = new List<bool>(new bool[4]);
-
-            string[] fileInput = System.IO.File.ReadAllLines(path);
-            char[] delimiterChars = { ',' };
-            string[] words;
-            int i = 0;
-            foreach (string line in fileInput)
-            {
-                moves = new List<bool>(new bool[4]);
-                Console.WriteLine(line);
-                words = line.Split(delimiterChars);
-
-                moves[0] = false;
-                moves[1] = false;
-                moves[2] = false;
-                moves[3] = false;
-                if (words[1].Equals("LEFT")) { moves[0] = true; }
-                else if (words[1].Equals("RIGHT")) { moves[1] = true; }
-                else if (words[1].Equals("UP")) { moves[2] = true; }
-                else if (words[1].Equals("DOWN")) { moves[3] = true; }
-
-                movesPerRound.Add(Int32.Parse(words[0]), moves);
-
-            }
-            return movesPerRound;
         }
 
     }

@@ -37,11 +37,30 @@ namespace pacman
 
         static void Main(string[] args)
         {
-            string url = args[0];
-            string[] urlSplit = url.Split(':', '/');
 
-            TcpChannel channel = new TcpChannel(Int32.Parse(urlSplit[4]));
-            ChannelServices.RegisterChannel(channel, false);
+            if (args.Length == 0)
+            {
+                TcpChannel channel = new TcpChannel(8086);
+                ChannelServices.RegisterChannel(channel, false);
+                System.Console.WriteLine("Desired game rate:");
+                MSEC_PER_ROUND = Console.ReadLine();
+                System.Console.WriteLine("Number of players:");
+                NUM_PLAYERS = Int32.Parse(Console.ReadLine());
+       
+            }
+            else
+            {
+                string url = args[0];
+                string[] urlSplit = url.Split(':', '/');
+                TcpChannel channel = new TcpChannel(Int32.Parse(urlSplit[4]));
+                ChannelServices.RegisterChannel(channel, false);
+                System.Console.WriteLine("Desired game rate:");
+                MSEC_PER_ROUND = args[1];
+                System.Console.WriteLine(args[1]);
+                System.Console.WriteLine("Number of players:");
+                NUM_PLAYERS = Int32.Parse(Console.ReadLine());
+                System.Console.WriteLine(args[2]);
+            }
 
             //Alternative 1
             //RemotingConfiguration.RegisterWellKnownServiceType(
@@ -52,18 +71,11 @@ namespace pacman
             ServerServices service = new ServerServices();
             RemotingServices.Marshal(service, "Server",
                 typeof(ServerServices));
-
-            System.Console.WriteLine("Desired game rate:");
-            MSEC_PER_ROUND = args[1];
-            System.Console.WriteLine(args[1]);
+            
             if (MSEC_PER_ROUND == "")
             {
                 MSEC_PER_ROUND = "20";
             }
-
-            System.Console.WriteLine("Number of players:");
-            NUM_PLAYERS = Int32.Parse(args[2]);
-            System.Console.WriteLine(args[2]);
 
             gamesettings = true;
 

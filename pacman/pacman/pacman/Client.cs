@@ -31,13 +31,28 @@ namespace pacman {
         [STAThread]
         static void Main(string[] args) {
 
-            string url = args[0];
-            string[] urlSplit = url.Split(':', '/');
+            int port;
+            string ip;
 
-            int port = Int32.Parse(urlSplit[4]);
-            string ip = GetLocalIPAddress();
-            TcpChannel chan = new TcpChannel(port);
-            ChannelServices.RegisterChannel(chan, false);
+            if (args.Length == 0)
+            {
+                port = FreeTcpPort();
+                ip = GetLocalIPAddress();
+                TcpChannel chan = new TcpChannel(port);
+                ChannelServices.RegisterChannel(chan, false);
+            }
+            else
+            {
+                string url = args[0];
+                string[] urlSplit = url.Split(':', '/');
+
+                port = Int32.Parse(urlSplit[4]);
+                ip = GetLocalIPAddress();
+                TcpChannel chan = new TcpChannel(port);
+                ChannelServices.RegisterChannel(chan, false);
+            }
+
+;
 
             // Alternative 1 for service activation
             ClientServices service = new ClientServices();
