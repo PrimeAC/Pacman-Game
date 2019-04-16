@@ -1,5 +1,9 @@
-# DAD-Project
-Repository for the project of Development of Distributed Applications.
+# PACMAN Game
+
+Repository for the project of the Development of Distributed Applications class.
+
+The DAD project aims at implementing a simplified (and therefore far from complete)
+fault-tolerant real-time distributed gaming platform.
 
 To start the game:
 
